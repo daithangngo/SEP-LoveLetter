@@ -38,6 +38,32 @@ Der Client fragt nach einem Namen. Danach wird jede eingegebene Zeile an alle ge
 Namensregeln: Leerzeichen am Rand werden entfernt; der Name darf nicht leer sein, keine Leerzeichen
 enthalten und nicht mit `/` beginnen. Groß-/Kleinschreibung zählt (`anna` und `Anna` sind verschieden).
 
+## VS Code
+
+Benötigt die Extension **Extension Pack for Java** (`vscjava.vscode-java-pack`); VS Code schlägt sie
+beim Öffnen des Ordners vor. Die Dateien in `.vscode/` enthalten rechnerspezifische JDK-Pfade und
+sind deshalb nicht im Git (`.gitignore`):
+
+| Datei             | Zweck                                                                                    |
+|-------------------|------------------------------------------------------------------------------------------|
+| `settings.json`   | Java-Extension nutzt JDK 27; jedes neue Terminal bekommt `JAVA_HOME` und Java 27 im `PATH` |
+| `extensions.json` | empfiehlt das Extension Pack for Java                                                    |
+| `tasks.json`      | Tasks zum Bauen, Testen und Starten (Ctrl+Shift+P → *Tasks: Run Task*)                    |
+| `launch.json`     | Debug-Konfigurationen mit Breakpoints (Ctrl+Shift+D → Konfiguration wählen → F5)          |
+
+Tasks:
+
+| Task                       | Was er tut                                                       |
+|----------------------------|------------------------------------------------------------------|
+| `Build jar`                | `mvn package` ohne Tests                                         |
+| `Test`                     | `mvn test`                                                       |
+| `Server`                   | baut die Jar und startet den Server                              |
+| `Client 1`, `Client 2`     | je ein Konsolen-Client                                           |
+| `Play: Server + 2 Clients` | Server, und sobald er lauscht, zwei Konsolen-Clients nebeneinander |
+
+Debug-Konfigurationen: `server` und `client` starten `App` mit dem jeweiligen Modus im
+integrierten Terminal (dort nimmt der Konsolen-Client Eingaben an).
+
 ## Struktur
 
 ```
