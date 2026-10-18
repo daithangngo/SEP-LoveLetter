@@ -1,0 +1,164 @@
+@startuml classes
+' Class diagram of the Love Letter pre-project. Matches the Java code in src/main/java.
+skinparam classAttributeIconSize 0
+hide empty members
+
+package de.lmu.sep.loveletter {
+
+  class App {
+    ~ {static} DEFAULT_PORT : int = 1337
+    ~ {static} DEFAULT_HOST : String = "localhost"
+    + {static} main(args : String[]) : void
+    - {static} printUsage() : void
+  }
+
+  class Server {
+    - port : int
+    - clients : Map<String, ClientHandler>
+    + Server(port : int)
+    + start() : void
+    + register(name : String, handler : ClientHandler) : boolean
+    + remove(name : String) : void
+    + broadcast(message : Message, except : ClientHandler) : void
+  }
+
+  class ClientHandler implements java.lang.Runnable {
+    - {static} INVALID_NAME_TEXT : String
+    - socket : Socket
+    - server : Server
+    - in : BufferedReader
+    - out : PrintWriter
+    - name : String
+    + ClientHandler(socket : Socket, server : Server)
+    + run() : void
+    + send(message : Message) : void {synchronized}
+    - login() : boolean
+    - chat() : void
+    - disconnect() : void
+    - {static} isValidName(name : String) : boolean
+  }
+
+  class Client {
+    - host : String
+    - port : int
+    - console : BufferedReader
+    - in : BufferedReader
+    - out : PrintWriter
+    + Client(host : String, port : int)
+    + start() : void
+    - login() : boolean
+    - sendConsoleLines() : void
+    - readMessages() : void
+    ~ {static} format(message : Message) : String
+  }
+
+  class Message {
+    + {static} LOGIN : String = "LOGIN"
+    + {static} INPUT : String = "INPUT"
+    + {static} LOGIN_OK : String = "LOGIN_OK"
+    + {static} LOGIN_ERROR : String = "LOGIN_ERROR"
+    + {static} INFO : String = "INFO"
+    + {static} CHAT : String = "CHAT"
+    + {static} ERROR : String = "ERROR"
+    - {static} GSON : Gson
+    - type : String
+    - name : String
+    - text : String
+    + Message(type : String, name : String, text : String)
+    + getType() : String
+    + getName() : String
+    + getText() : String
+    + toJson() : String
+    + {static} fromJson(json : String) : Message
+  }
+}
+
+package de.lmu.sep.loveletter.model {
+
+  enum CardType {
+    PRINCESS
+    COUNTESS
+    KING
+    PRINCE
+    HANDMAID
+    BARON
+    PRIEST
+    GUARD
+    - name : String
+    - value : int
+    - countInDeck : int
+    - CardType(name : String, value : int, countInDeck : int)
+    + getName() : String
+    + getValue() : int
+    + getCountInDeck() : int
+  }
+
+  class Deck {
+    - cards : List<CardType>
+    + Deck()
+    + getCards() : List<CardType>
+  }
+
+  class Player {
+    - name : String
+    - hand : List<CardType>
+    - discardPile : List<CardType>
+    - tokens : int
+    - inRound : boolean
+    - protectedByHandmaid : boolean
+    + Player(name : String)
+    + getName() : String
+    + getHand() : List<CardType>
+    + getDiscardPile() : List<CardType>
+    + getTokens() : int
+    + setTokens(tokens : int) : void
+    + isInRound() : boolean
+    + setInRound(inRound : boolean) : void
+    + isProtectedByHandmaid() : boolean
+    + setProtectedByHandmaid(protectedByHandmaid : boolean) : void
+  }
+
+  class Round {
+    - deck : Deck
+    - setAsideCard : CardType
+    - faceUpCards : List<CardType>
+    - players : List<Player>
+    - currentPlayerIndex : int
+    + Round(players : List<Player>)
+    + getDeck() : Deck
+    + getSetAsideCard() : CardType
+    + setSetAsideCard(setAsideCard : CardType) : void
+    + getFaceUpCards() : List<CardType>
+    + getPlayers() : List<Player>
+    + getCurrentPlayerIndex() : int
+    + setCurrentPlayerIndex(currentPlayerIndex : int) : void
+  }
+
+  class Game {
+    - players : List<Player>
+    - currentRound : Round
+    + Game(players : List<Player>)
+    + getPlayers() : List<Player>
+    + getCurrentRound() : Round
+    + setCurrentRound(currentRound : Round) : void
+  }
+}
+
+' Network
+App ..> Server : creates
+App ..> Client : creates
+Server "1" o-- "*" ClientHandler : clients
+ClientHandler --> "1" Server : server
+ClientHandler ..> Message : sends / reads
+Client ..> Message : sends / reads
+
+' Model
+Game "1" o-- "2..4" Player : players
+Game --> "0..1" Round : currentRound
+Round "1" *-- "1" Deck : deck
+Round o-- "2..4" Player : players
+Round --> "0..1" CardType : setAsideCard
+Round --> "0..3" CardType : faceUpCards
+Player --> "*" CardType : hand, discardPile
+Deck --> "*" CardType : cards
+@enduml

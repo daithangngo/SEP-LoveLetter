@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -16,7 +17,10 @@ public class Client {
 
   private final String host;
   private final int port;
-  private final BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
+  // The console may use another encoding than UTF-8 (on Windows often cp850);
+  // stdin.encoding names it, so umlauts typed by the user are read correctly.
+  private final BufferedReader console = new BufferedReader(
+      new InputStreamReader(System.in, Charset.forName(System.getProperty("stdin.encoding"))));
   private BufferedReader in;
   private PrintWriter out;
 
