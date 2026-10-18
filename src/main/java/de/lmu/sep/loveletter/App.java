@@ -1,5 +1,7 @@
 package de.lmu.sep.loveletter;
 
+import java.io.IOException;
+
 /**
  * Entry point. Starts either the server or a client, depending on the first argument.
  *
@@ -21,24 +23,28 @@ public class App {
       return;
     }
     String mode = args[0];
-    if (mode.equals("server")) {
-      int port = DEFAULT_PORT;
-      if (args.length > 1) {
-        port = Integer.parseInt(args[1]);
+    try {
+      if (mode.equals("server")) {
+        int port = DEFAULT_PORT;
+        if (args.length > 1) {
+          port = Integer.parseInt(args[1]);
+        }
+        new Server(port).start();
+      } else if (mode.equals("client")) {
+        String host = DEFAULT_HOST;
+        int port = DEFAULT_PORT;
+        if (args.length > 1) {
+          host = args[1];
+        }
+        if (args.length > 2) {
+          port = Integer.parseInt(args[2]);
+        }
+        new Client(host, port).start();
+      } else {
+        printUsage();
       }
-      System.out.println("Mode: server, port " + port);
-    } else if (mode.equals("client")) {
-      String host = DEFAULT_HOST;
-      int port = DEFAULT_PORT;
-      if (args.length > 1) {
-        host = args[1];
-      }
-      if (args.length > 2) {
-        port = Integer.parseInt(args[2]);
-      }
-      System.out.println("Mode: client, " + host + ":" + port);
-    } else {
-      printUsage();
+    } catch (IOException e) {
+      System.out.println("Error: " + e.getMessage());
     }
   }
 
