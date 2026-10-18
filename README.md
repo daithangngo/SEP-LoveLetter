@@ -1,14 +1,27 @@
-# Love Letter – Vorprojekt (SEP, LMU, WiSe 2026/27)
+# Love Letter – Preliminary Project (SEP, LMU, Winter Term 2026/27)
 
-Chatsystem über TCP: beliebig viele Clients melden sich mit einem eindeutigen Namen beim Server an
-und chatten miteinander. Dazu das Datenmodell für Love Letter (2–4 Spieler).
+Chat system over TCP: any number of clients log in to the server with a unique name and chat with
+each other. Also includes the data model for Love Letter (2–4 players).
 
-## Voraussetzungen
+## Quick start
 
-- JDK 27 (`java -version` muss 27 zeigen; sonst `JAVA_HOME` auf ein JDK 27 setzen)
-- Maven 3.9 oder neuer
-- JavaFX 27 muss nicht installiert werden: Maven lädt es als Dependency `org.openjfx:javafx-controls`
-  (der Maven-Weg aus den openjfx-docs), deshalb ist kein JavaFX-SDK und kein SDK-Pfad nötig.
+```powershell
+mvn package
+java -jar target/loveletter-jar-with-dependencies.jar server
+java -jar target/loveletter-jar-with-dependencies.jar gui
+java -jar target/loveletter-jar-with-dependencies.jar gui
+```
+
+Run each `java` command in its own terminal: one server, two chat windows. In each window, enter a
+name, then chat.
+
+## Requirements
+
+- JDK 27 (`java -version` must show 27; otherwise set `JAVA_HOME` to a JDK 27)
+- Maven 3.9 or newer
+- JavaFX 27 does not need to be installed: Maven downloads it as the dependency
+  `org.openjfx:javafx-controls` (the Maven approach from the openjfx docs), so no JavaFX SDK and no
+  SDK path are needed.
 
 ## Build
 
@@ -16,124 +29,126 @@ und chatten miteinander. Dazu das Datenmodell für Love Letter (2–4 Spieler).
 mvn package
 ```
 
-Baut und testet das Projekt. Ergebnis: `target/loveletter-jar-with-dependencies.jar` (enthält Gson
-und JavaFX für das Betriebssystem, auf dem gebaut wurde).
+Builds and tests the project. Result: `target/loveletter-jar-with-dependencies.jar` (contains Gson
+and JavaFX for the operating system it was built on).
 
-## Start
+## Running
 
-Server (Standard-Port 1337):
+Server (default port 1337):
 
 ```powershell
 java -jar target/loveletter-jar-with-dependencies.jar server
 java -jar target/loveletter-jar-with-dependencies.jar server 4000
 ```
 
-Client (Standard: `localhost`, Port 1337), in einem eigenen Terminal pro Client:
+Client (default: `localhost`, port 1337), in a separate terminal per client:
 
 ```powershell
 java -jar target/loveletter-jar-with-dependencies.jar client
 java -jar target/loveletter-jar-with-dependencies.jar client localhost 4000
 ```
 
-Der Client fragt nach einem Namen. Danach wird jede eingegebene Zeile an alle gesendet.
-`bye` oder `/bye` beendet die Verbindung.
+The client asks for a name. After that, every line entered is sent to everyone.
+`bye` or `/bye` ends the connection.
 
-Chatfenster (JavaFX, Standard: `localhost`, Port 1337):
+Chat window (JavaFX, default: `localhost`, port 1337):
 
 ```powershell
 java -jar target/loveletter-jar-with-dependencies.jar gui
 java -jar target/loveletter-jar-with-dependencies.jar gui localhost 4000
 ```
 
-Unten zuerst den Namen eingeben und Enter drücken, danach jede Zeile mit Enter senden – wie beim
-Konsolen-Client. Das Fenster nutzt denselben Server und dasselbe Protokoll wie der Konsolen-Client, beide
-können also miteinander chatten. Fenster schließen beendet die Verbindung.
+First enter the name at the bottom and press Enter, then send each line with Enter – just like the
+console client. The window uses the same server and the same protocol as the console client, so the
+two can chat with each other. Closing the window ends the connection.
 
-![Zwei Chatfenster: anna und ben chatten miteinander](docs/screenshots/chat-two-clients.png)
+![Two chat windows: anna and ben chatting with each other](docs/screenshots/chat-two-clients.png)
 
-Ist der Name schon vergeben, bleibt das Feld bei der Namenseingabe:
+If the name is already taken, the field stays on name input:
 
-![Chatfenster mit Fehlermeldung „name already taken: anna“](docs/screenshots/login-error.png)
+![Chat window with the error message "name already taken: anna"](docs/screenshots/login-error.png)
 
-Namensregeln: Leerzeichen am Rand werden entfernt; der Name darf nicht leer sein, keine Leerzeichen
-enthalten und nicht mit `/` beginnen. Groß-/Kleinschreibung zählt (`anna` und `Anna` sind verschieden).
+Name rules: leading and trailing spaces are removed; the name must not be empty, must not contain
+spaces and must not start with `/`. Names are case-sensitive (`anna` and `Anna` are different).
 
 ## VS Code
 
-Benötigt die Extension **Extension Pack for Java** (`vscjava.vscode-java-pack`); VS Code schlägt sie
-beim Öffnen des Ordners vor. Die Dateien in `.vscode/` enthalten rechnerspezifische JDK-Pfade und
-sind deshalb nicht im Git (`.gitignore`):
+Requires the extension **Extension Pack for Java** (`vscjava.vscode-java-pack`); VS Code suggests it
+when the folder is opened. The files in `.vscode/` contain machine-specific JDK paths and are
+therefore not in Git (`.gitignore`):
 
-| Datei             | Zweck                                                                                    |
-|-------------------|------------------------------------------------------------------------------------------|
-| `settings.json`   | Java-Extension nutzt JDK 27; jedes neue Terminal bekommt `JAVA_HOME` und Java 27 im `PATH` |
-| `extensions.json` | empfiehlt das Extension Pack for Java                                                    |
-| `tasks.json`      | Tasks zum Bauen, Testen und Starten (Ctrl+Shift+P → *Tasks: Run Task*)                    |
-| `launch.json`     | Debug-Konfigurationen mit Breakpoints (Ctrl+Shift+D → Konfiguration wählen → F5)          |
+| File              | Purpose                                                                                     |
+|-------------------|---------------------------------------------------------------------------------------------|
+| `settings.json`   | Java extension uses JDK 27; every new terminal gets `JAVA_HOME` and Java 27 on the `PATH`   |
+| `extensions.json` | recommends the Extension Pack for Java                                                      |
+| `tasks.json`      | tasks for building, testing and running (Ctrl+Shift+P → *Tasks: Run Task*)                  |
+| `launch.json`     | debug configurations with breakpoints (Ctrl+Shift+D → select configuration → F5)            |
 
 Tasks:
 
-| Task                       | Was er tut                                                       |
-|----------------------------|------------------------------------------------------------------|
-| `Build jar`                | `mvn package` ohne Tests                                         |
-| `Test`                     | `mvn test`                                                       |
-| `Server`                   | baut die Jar und startet den Server                              |
-| `Client 1`, `Client 2`     | je ein Konsolen-Client                                           |
-| `Play: Server + 2 Clients` | Server, und sobald er lauscht, zwei Konsolen-Clients nebeneinander |
-| `GUI Client`, `GUI Client 2` | je ein Chatfenster                                             |
-| `Play: Server + 2 GUIs`    | Server, und sobald er lauscht, zwei Chatfenster                  |
+| Task                         | What it does                                                    |
+|------------------------------|-----------------------------------------------------------------|
+| `Build jar`                  | `mvn package` without tests                                     |
+| `Test`                       | `mvn test`                                                      |
+| `Server`                     | builds the jar and starts the server                            |
+| `Client 1`, `Client 2`       | one console client each                                         |
+| `Play: Server + 2 Clients`   | server, and as soon as it listens, two console clients side by side |
+| `GUI Client`, `GUI Client 2` | one chat window each                                            |
+| `Play: Server + 2 GUIs`      | server, and as soon as it listens, two chat windows             |
 
-Debug-Konfigurationen: `server`, `client` und `gui` starten `App` mit dem jeweiligen Modus im
-integrierten Terminal (dort nimmt der Konsolen-Client Eingaben an).
+Debug configurations: `server`, `client` and `gui` start `App` in the respective mode in the
+integrated terminal (where the console client accepts input).
 
-## Struktur
+## Structure
 
 ```
 src/main/java/de/lmu/sep/loveletter/
-  App.java             Einstieg: startet Server, Konsolen-Client oder Chatfenster
-  Server.java          nimmt Verbindungen an, verwaltet angemeldete Clients, Broadcast
-  ClientHandler.java   ein Thread pro Client auf dem Server: Login, Chat, Aufräumen
-  Client.java          Konsolen-Client: Login, Lese-Thread, Eingabe senden
-  ChatWindow.java      JavaFX-Chatfenster: Nachrichtenfeld + Eingabefeld, Lese-Thread per runLater
-  Message.java         eine Protokollnachricht, als JSON-Zeile (Gson)
+  App.java             entry point: starts server, console client or chat window
+  Server.java          accepts connections, manages logged-in clients, broadcast
+  ClientHandler.java   one thread per client on the server: login, chat, cleanup
+  Client.java          console client: login, reading thread, sending input
+  ChatWindow.java      JavaFX chat window: message area + input field, reading thread via runLater
+  Message.java         one protocol message, as a JSON line (Gson)
 src/main/java/de/lmu/sep/loveletter/model/
-  CardType.java        die 8 Kartenarten mit Wert und Anzahl im Deck
-  Deck.java            Nachziehstapel mit 16 Karten
-  Player.java          Hand, Ablagestapel, Tokens, Status in der Runde
-  Round.java           Deck, beiseitegelegte Karten, Spieler, wer am Zug ist
-  Game.java            Spieler und aktuelle Runde
+  CardType.java        the 8 card types with value and count in the deck
+  Deck.java            draw pile with 16 cards
+  Player.java          hand, discard pile, tokens, status in the round
+  Round.java           deck, set-aside cards, players, whose turn it is
+  Game.java            players and current round
 src/test/java/...      ServerTest, MessageTest, ChatIntegrationTest, model/DeckTest
-uml/classes.puml       UML-Klassendiagramm (PlantUML)
+uml/classes.puml       UML class diagram (PlantUML), rendered as loveletter-uml.png and .svg
 ```
 
-Das Modell enthält nur Daten, noch keine Spielregeln und keinen Netzwerk-Code.
+The model contains only data, no game rules yet and no network code.
 
-## Protokoll
+![UML class diagram](uml/loveletter-uml.svg)
 
-TCP, UTF-8, eine JSON-Nachricht pro Zeile. Jede Nachricht hat die Felder `type`, `name`, `text`;
-nicht benötigte Felder fehlen.
+## Protocol
 
-| Richtung        | type          | Felder     | Bedeutung                                    |
-|-----------------|---------------|------------|----------------------------------------------|
-| Client → Server | `LOGIN`       | name       | Anmeldung mit Namen                          |
-| Client → Server | `INPUT`       | text       | eine eingegebene Zeile                       |
-| Server → Client | `LOGIN_OK`    | –          | Name akzeptiert                              |
-| Server → Client | `LOGIN_ERROR` | text       | Name abgelehnt, mit Grund                    |
-| Server → Client | `INFO`        | text       | `welcome name`, `name joined/left the room`  |
-| Server → Client | `CHAT`        | name, text | Chatzeile von `name`, an alle inkl. Absender |
-| Server → Client | `ERROR`       | text       | unbekannter Command, nur an den Absender     |
+TCP, UTF-8, one JSON message per line. Every message has the fields `type`, `name`, `text`;
+fields that are not needed are omitted.
 
-Beispiel:
+| Direction       | type          | Fields     | Meaning                                         |
+|-----------------|---------------|------------|-------------------------------------------------|
+| Client → Server | `LOGIN`       | name       | log in with a name                              |
+| Client → Server | `INPUT`       | text       | one line entered                                |
+| Server → Client | `LOGIN_OK`    | –          | name accepted                                   |
+| Server → Client | `LOGIN_ERROR` | text       | name rejected, with reason                      |
+| Server → Client | `INFO`        | text       | `welcome name`, `name joined/left the room`     |
+| Server → Client | `CHAT`        | name, text | chat line from `name`, to everyone incl. sender |
+| Server → Client | `ERROR`       | text       | unknown command, only to the sender             |
+
+Example:
 
 ```
 → {"type":"LOGIN","name":"anna"}
 ← {"type":"LOGIN_OK"}
 ← {"type":"INFO","text":"welcome anna"}
-→ {"type":"INPUT","text":"hallo"}
-← {"type":"CHAT","name":"anna","text":"hallo"}
+→ {"type":"INPUT","text":"hello"}
+← {"type":"CHAT","name":"anna","text":"hello"}
 ```
 
-Ablauf: Nach `LOGIN_OK` bekommt der neue Client `welcome name`, alle anderen `name joined the room`.
-Eingaben ohne `/` gehen als `CHAT` an alle. `bye` und `/bye` beenden die Verbindung; jeder andere
-Text mit `/` am Anfang ergibt `ERROR`. Wird eine Verbindung beendet (per `bye` oder durch Abbruch),
-bekommen alle anderen `name left the room` und der Name ist wieder frei.
+Flow: after `LOGIN_OK`, the new client gets `welcome name`, all others get `name joined the room`.
+Input without `/` goes to everyone as `CHAT`. `bye` and `/bye` end the connection; any other text
+starting with `/` results in `ERROR`. When a connection ends (via `bye` or by dropping), all others
+get `name left the room` and the name is free again.
