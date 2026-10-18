@@ -84,6 +84,48 @@ class ChatIntegrationTest {
     }
   }
 
+  @Test
+  void othersAreToldWhenSomeoneJoins() throws Exception {
+    try (Socket anna = connect(); Socket ben = connect()) {
+      BufferedReader annaIn = reader(anna);
+      login(annaIn, writer(anna), "anna");
+
+      login(reader(ben), writer(ben), "ben");
+
+      assertEquals("ben joined the room", receive(annaIn).getText());
+    }
+  }
+
+  @Test
+  void chatLineReachesEveryoneIncludingSender() throws Exception {
+    try (Socket anna = connect(); Socket ben = connect(); Socket carl = connect()) {
+      BufferedReader annaIn = reader(anna);
+      PrintWriter annaOut = writer(anna);
+      BufferedReader benIn = reader(ben);
+      BufferedReader carlIn = reader(carl);
+      // Each join message is read before the next login, so their order is fixed
+      // and the next message after them is the chat line.
+      login(annaIn, annaOut, "anna");
+      login(benIn, writer(ben), "ben");
+      assertEquals("ben joined the room", receive(annaIn).getText());
+      login(carlIn, writer(carl), "carl");
+      assertEquals("carl joined the room", receive(annaIn).getText());
+      assertEquals("carl joined the room", receive(benIn).getText());
+
+      send(annaOut, Message.INPUT, null, "hello all");
+
+      assertChat(receive(annaIn), "anna", "hello all");
+      assertChat(receive(benIn), "anna", "hello all");
+      assertChat(receive(carlIn), "anna", "hello all");
+    }
+  }
+
+  private static void assertChat(Message message, String name, String text) {
+    assertEquals(Message.CHAT, message.getType());
+    assertEquals(name, message.getName());
+    assertEquals(text, message.getText());
+  }
+
   /** Logs in and checks LOGIN_OK and the welcome text. */
   private static void login(BufferedReader in, PrintWriter out, String name) throws IOException {
     send(out, Message.LOGIN, name, null);

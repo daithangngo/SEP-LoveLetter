@@ -92,19 +92,23 @@ public class ClientHandler implements Runnable {
         send(new Message(Message.LOGIN_OK, null, null));
         send(new Message(Message.INFO, null, "welcome " + name));
       }
+      server.broadcast(new Message(Message.INFO, null, name + " joined the room"), this);
       return true;
     }
     return false;
   }
 
   /**
-   * Reads the input of a logged-in client until the connection ends.
+   * Reads the input of a logged-in client and sends every line to all clients,
+   * the sender included, until the connection ends.
    *
    * @throws IOException if reading fails
    */
   private void chat() throws IOException {
-    while (in.readLine() != null) {
-      // Handling of chat lines follows in the next step.
+    String line;
+    while ((line = in.readLine()) != null) {
+      Message message = Message.fromJson(line);
+      server.broadcast(new Message(Message.CHAT, name, message.getText()), null);
     }
   }
 

@@ -62,4 +62,18 @@ public class Server {
   public void remove(String name) {
     clients.remove(name);
   }
+
+  /**
+   * Sends a message to all logged-in clients except one.
+   *
+   * @param message the message to send
+   * @param except the client that does not get the message, or null to send to everyone
+   */
+  public void broadcast(Message message, ClientHandler except) {
+    for (ClientHandler handler : clients.values()) {
+      if (handler != except) {
+        handler.send(message);
+      }
+    }
+  }
 }
