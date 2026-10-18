@@ -1,11 +1,19 @@
 package de.lmu.sep.loveletter;
 
 import java.io.IOException;
+import java.util.Arrays;
+import javafx.application.Application;
 
 /**
- * Entry point. Starts either the server or a client, depending on the first argument.
+ * Entry point. Starts the server, the console client or the JavaFX chat window, depending on
+ * the first argument.
  *
- * <p>Usage: {@code server [port]} or {@code client [host] [port]}.
+ * <p>Usage: {@code server [port]}, {@code client [host] [port]} or {@code gui [host] [port]}.
+ *
+ * <p>App deliberately does not extend {@link Application}. If the main class of a program is
+ * an Application, the java launcher refuses to start unless JavaFX is on the module path
+ * ("JavaFX runtime components are missing"). In our jar JavaFX is on the normal classpath,
+ * so a separate main class that calls {@link Application#launch} is needed.
  */
 public class App {
 
@@ -15,7 +23,7 @@ public class App {
   /**
    * Reads the mode from the arguments and starts it.
    *
-   * @param args {@code server [port]} or {@code client [host] [port]}
+   * @param args {@code server [port]}, {@code client [host] [port]} or {@code gui [host] [port]}
    */
   public static void main(String[] args) {
     if (args.length == 0) {
@@ -40,6 +48,11 @@ public class App {
           port = Integer.parseInt(args[2]);
         }
         new Client(host, port).start();
+      } else if (mode.equals("gui")) {
+        // Pass only what comes after "gui" (host and port); ChatWindow reads it with
+        // getParameters().getRaw(). launch() returns when the window is closed.
+        String[] guiArgs = Arrays.copyOfRange(args, 1, args.length);
+        Application.launch(ChatWindow.class, guiArgs);
       } else {
         printUsage();
       }
@@ -51,5 +64,6 @@ public class App {
   private static void printUsage() {
     System.out.println("Usage: java -jar loveletter-jar-with-dependencies.jar server [port]");
     System.out.println("       java -jar loveletter-jar-with-dependencies.jar client [host] [port]");
+    System.out.println("       java -jar loveletter-jar-with-dependencies.jar gui [host] [port]");
   }
 }

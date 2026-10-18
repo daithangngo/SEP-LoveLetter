@@ -7,6 +7,8 @@ und chatten miteinander. Dazu das Datenmodell für Love Letter (2–4 Spieler).
 
 - JDK 27 (`java -version` muss 27 zeigen; sonst `JAVA_HOME` auf ein JDK 27 setzen)
 - Maven 3.9 oder neuer
+- JavaFX 27 muss nicht installiert werden: Maven lädt es als Dependency `org.openjfx:javafx-controls`
+  (der Maven-Weg aus den openjfx-docs), deshalb ist kein JavaFX-SDK und kein SDK-Pfad nötig.
 
 ## Build
 
@@ -14,7 +16,8 @@ und chatten miteinander. Dazu das Datenmodell für Love Letter (2–4 Spieler).
 mvn package
 ```
 
-Baut und testet das Projekt. Ergebnis: `target/loveletter-jar-with-dependencies.jar` (enthält Gson).
+Baut und testet das Projekt. Ergebnis: `target/loveletter-jar-with-dependencies.jar` (enthält Gson
+und JavaFX für das Betriebssystem, auf dem gebaut wurde).
 
 ## Start
 
@@ -34,6 +37,17 @@ java -jar target/loveletter-jar-with-dependencies.jar client localhost 4000
 
 Der Client fragt nach einem Namen. Danach wird jede eingegebene Zeile an alle gesendet.
 `bye` oder `/bye` beendet die Verbindung.
+
+Chatfenster (JavaFX, Standard: `localhost`, Port 1337):
+
+```powershell
+java -jar target/loveletter-jar-with-dependencies.jar gui
+java -jar target/loveletter-jar-with-dependencies.jar gui localhost 4000
+```
+
+Oben Namen eingeben und *Join* klicken; danach unten Text eingeben und *Send* klicken oder Enter
+drücken. Das Fenster nutzt denselben Server und dasselbe Protokoll wie der Konsolen-Client, beide
+können also miteinander chatten. Fenster schließen beendet die Verbindung.
 
 Namensregeln: Leerzeichen am Rand werden entfernt; der Name darf nicht leer sein, keine Leerzeichen
 enthalten und nicht mit `/` beginnen. Groß-/Kleinschreibung zählt (`anna` und `Anna` sind verschieden).
@@ -60,18 +74,21 @@ Tasks:
 | `Server`                   | baut die Jar und startet den Server                              |
 | `Client 1`, `Client 2`     | je ein Konsolen-Client                                           |
 | `Play: Server + 2 Clients` | Server, und sobald er lauscht, zwei Konsolen-Clients nebeneinander |
+| `GUI Client`, `GUI Client 2` | je ein Chatfenster                                             |
+| `Play: Server + 2 GUIs`    | Server, und sobald er lauscht, zwei Chatfenster                  |
 
-Debug-Konfigurationen: `server` und `client` starten `App` mit dem jeweiligen Modus im
+Debug-Konfigurationen: `server`, `client` und `gui` starten `App` mit dem jeweiligen Modus im
 integrierten Terminal (dort nimmt der Konsolen-Client Eingaben an).
 
 ## Struktur
 
 ```
 src/main/java/de/lmu/sep/loveletter/
-  App.java             Einstieg: startet Server oder Client
+  App.java             Einstieg: startet Server, Konsolen-Client oder Chatfenster
   Server.java          nimmt Verbindungen an, verwaltet angemeldete Clients, Broadcast
   ClientHandler.java   ein Thread pro Client auf dem Server: Login, Chat, Aufräumen
   Client.java          Konsolen-Client: Login, Lese-Thread, Eingabe senden
+  ChatWindow.java      JavaFX-Chatfenster: Join, Send, Lese-Thread gibt Nachrichten per runLater aus
   Message.java         eine Protokollnachricht, als JSON-Zeile (Gson)
 src/main/java/de/lmu/sep/loveletter/model/
   CardType.java        die 8 Kartenarten mit Wert und Anzahl im Deck
