@@ -49,6 +49,12 @@ Unten zuerst den Namen eingeben und Enter drücken, danach jede Zeile mit Enter 
 Konsolen-Client. Das Fenster nutzt denselben Server und dasselbe Protokoll wie der Konsolen-Client, beide
 können also miteinander chatten. Fenster schließen beendet die Verbindung.
 
+![Zwei Chatfenster: anna und ben chatten miteinander](docs/screenshots/chat-two-clients.png)
+
+Ist der Name schon vergeben, bleibt das Feld bei der Namenseingabe:
+
+![Chatfenster mit Fehlermeldung „name already taken: anna“](docs/screenshots/login-error.png)
+
 Namensregeln: Leerzeichen am Rand werden entfernt; der Name darf nicht leer sein, keine Leerzeichen
 enthalten und nicht mit `/` beginnen. Groß-/Kleinschreibung zählt (`anna` und `Anna` sind verschieden).
 
