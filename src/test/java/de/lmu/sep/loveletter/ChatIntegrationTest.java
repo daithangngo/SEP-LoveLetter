@@ -2,6 +2,7 @@ package de.lmu.sep.loveletter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -117,6 +118,71 @@ class ChatIntegrationTest {
       assertChat(receive(annaIn), "anna", "hello all");
       assertChat(receive(benIn), "anna", "hello all");
       assertChat(receive(carlIn), "anna", "hello all");
+    }
+  }
+
+  @Test
+  void byeEndsConnectionAndOthersAreTold() throws Exception {
+    assertLeavesWith("bye");
+  }
+
+  @Test
+  void slashByeWorksLikeBye() throws Exception {
+    assertLeavesWith("/bye");
+  }
+
+  @Test
+  void unknownCommandGivesErrorOnlyToSender() throws Exception {
+    try (Socket anna = connect(); Socket ben = connect()) {
+      BufferedReader annaIn = reader(anna);
+      PrintWriter annaOut = writer(anna);
+      BufferedReader benIn = reader(ben);
+      login(annaIn, annaOut, "anna");
+      login(benIn, writer(ben), "ben");
+      assertEquals("ben joined the room", receive(annaIn).getText());
+
+      send(annaOut, Message.INPUT, null, "/dance");
+      Message error = receive(annaIn);
+      assertEquals(Message.ERROR, error.getType());
+      assertEquals("unknown command: /dance", error.getText());
+
+      // If ben had received the error, it would arrive before this chat line.
+      send(annaOut, Message.INPUT, null, "still here");
+      assertChat(receive(benIn), "anna", "still here");
+    }
+  }
+
+  @Test
+  void brokenConnectionIsTreatedLikeByeAndFreesName() throws Exception {
+    try (Socket anna = connect(); Socket ben = connect(); Socket newBen = connect()) {
+      BufferedReader annaIn = reader(anna);
+      login(annaIn, writer(anna), "anna");
+      login(reader(ben), writer(ben), "ben");
+      assertEquals("ben joined the room", receive(annaIn).getText());
+
+      ben.close();
+
+      assertEquals("ben left the room", receive(annaIn).getText());
+      login(reader(newBen), writer(newBen), "ben");
+    }
+  }
+
+  /** Logs in anna and ben, lets ben send the given text and checks that ben is gone. */
+  private void assertLeavesWith(String byeText) throws Exception {
+    try (Socket anna = connect(); Socket ben = connect()) {
+      BufferedReader annaIn = reader(anna);
+      BufferedReader benIn = reader(ben);
+      PrintWriter benOut = writer(ben);
+      login(annaIn, writer(anna), "anna");
+      login(benIn, benOut, "ben");
+      assertEquals("ben joined the room", receive(annaIn).getText());
+
+      send(benOut, Message.INPUT, null, byeText);
+
+      Message left = receive(annaIn);
+      assertEquals(Message.INFO, left.getType());
+      assertEquals("ben left the room", left.getText());
+      assertNull(benIn.readLine(), "server should close ben's connection");
     }
   }
 

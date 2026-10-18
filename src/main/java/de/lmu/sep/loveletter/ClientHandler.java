@@ -99,23 +99,35 @@ public class ClientHandler implements Runnable {
   }
 
   /**
-   * Reads the input of a logged-in client and sends every line to all clients,
-   * the sender included, until the connection ends.
+   * Reads the input of a logged-in client until "bye" or the end of the connection.
+   * Normal lines go to all clients, the sender included. Lines starting with "/" are
+   * commands; "/bye" is the only one, every other command gets an error.
    *
    * @throws IOException if reading fails
    */
   private void chat() throws IOException {
     String line;
     while ((line = in.readLine()) != null) {
-      Message message = Message.fromJson(line);
-      server.broadcast(new Message(Message.CHAT, name, message.getText()), null);
+      String text = Message.fromJson(line).getText().trim();
+      if (text.equals("bye") || text.equals("/bye")) {
+        return;
+      }
+      if (text.startsWith("/")) {
+        send(new Message(Message.ERROR, null, "unknown command: " + text));
+      } else {
+        server.broadcast(new Message(Message.CHAT, name, text), null);
+      }
     }
   }
 
-  /** Frees the name and closes the connection. */
+  /**
+   * Cleans up after "bye" and after a broken connection alike: frees the name,
+   * tells the others and closes the connection.
+   */
   private void disconnect() {
     if (name != null) {
       server.remove(name);
+      server.broadcast(new Message(Message.INFO, null, name + " left the room"), this);
     }
     try {
       socket.close();
