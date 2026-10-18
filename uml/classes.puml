@@ -53,24 +53,18 @@ package de.lmu.sep.loveletter {
   }
 
   class ChatWindow extends javafx.application.Application {
-    - nameField : TextField
-    - joinButton : Button
-    - messageArea : TextArea
-    - inputField : TextField
-    - sendButton : Button
+    - messages : TextArea
+    - input : TextField
     - socket : Socket
     - in : BufferedReader
     - out : PrintWriter
+    - loggedIn : boolean
     + start(stage : Stage) : void
     + stop() : void
     - connect(host : String, port : int) : void
-    - join() : void
     - send() : void
     - readMessages() : void
-    - showMessage(message : Message) : void
-    - connectionClosed() : void
-    - setLoginEnabled(enabled : boolean) : void
-    - setChatEnabled(enabled : boolean) : void
+    - show(message : Message) : void
   }
 
   class Message {
@@ -175,6 +169,7 @@ ClientHandler ..> Message : sends / reads
 Client ..> Message : sends / reads
 ChatWindow ..> Message : sends / reads
 ChatWindow ..> App : DEFAULT_HOST, DEFAULT_PORT
+ChatWindow ..> Client : format()
 
 ' Model
 Game "1" o-- "2..4" Player : players

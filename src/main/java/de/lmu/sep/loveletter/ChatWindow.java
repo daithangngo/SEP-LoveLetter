@@ -10,42 +10,31 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 
 /**
- * JavaFX chat window: a graphical client for the same server and protocol as {@link Client}.
+ * Minimal JavaFX chat window: a graphical client for the same server and protocol as
+ * {@link Client}. One read-only area shows the messages, one field takes the input.
+ * Like in the console client, the first line entered is the name, every later line is chat.
  *
- * <p>The network code (socket, reader, writer, reading thread) is copied from {@link Client}
- * on purpose instead of changing {@link Client} so that both can use it. That keeps
- * {@link Client} unchanged and each class can be read and explained on its own.
- *
- * <p>Two threads are involved: the JavaFX thread builds the window and runs the button
- * handlers, and a reading thread waits for lines from the server. Only the JavaFX thread may
- * change the window, so the reading thread hands every message over with
+ * <p>Two threads are involved: the JavaFX thread builds the window and handles Enter, and a
+ * reading thread waits for lines from the server. Only the JavaFX thread may change the
+ * window, so the reading thread hands every message over with
  * {@link Platform#runLater(Runnable)}.
  */
 public class ChatWindow extends Application {
 
-  // Top row: name and "Join". Usable only before the login.
-  private TextField nameField;
-  private Button joinButton;
-  // Middle: all messages, read-only.
-  private TextArea messageArea;
-  // Bottom row: chat input and "Send". Usable only after the login.
-  private TextField inputField;
-  private Button sendButton;
-
+  private final TextArea messages = new TextArea();
+  private final TextField input = new TextField();
   private Socket socket;
   private BufferedReader in;
   private PrintWriter out;
+  // Only used on the JavaFX thread: false sends the input as LOGIN, true as INPUT.
+  private boolean loggedIn;
 
   /**
    * Called by JavaFX on the JavaFX thread after {@link Application#launch}. Builds the window,
@@ -55,8 +44,7 @@ public class ChatWindow extends Application {
    */
   @Override
   public void start(Stage stage) {
-    // Host and port come from the command line: "gui [host] [port]". App passes only the
-    // values after "gui", and getRaw() returns them unchanged.
+    // App passes only what comes after "gui": [host] [port].
     String host = App.DEFAULT_HOST;
     int port = App.DEFAULT_PORT;
     List<String> args = getParameters().getRaw();
@@ -67,44 +55,18 @@ public class ChatWindow extends Application {
       port = Integer.parseInt(args.get(1));
     }
 
-    // Top: name field and Join button. The field grows with the window width.
-    nameField = new TextField();
-    nameField.setPromptText("Name");
-    joinButton = new Button("Join");
-    HBox top = new HBox(5, nameField, joinButton);
-    HBox.setHgrow(nameField, Priority.ALWAYS);
+    messages.setEditable(false);
+    input.setPromptText("Name");
+    // Runs on the JavaFX thread when the user presses Enter in the field.
+    input.setOnAction(event -> send());
 
-    // Middle: the message area. Not editable, because it only shows what the server sends.
-    messageArea = new TextArea();
-    messageArea.setEditable(false);
-    messageArea.setWrapText(true);
-
-    // Bottom: input field and Send button.
-    inputField = new TextField();
-    sendButton = new Button("Send");
-    HBox bottom = new HBox(5, inputField, sendButton);
-    HBox.setHgrow(inputField, Priority.ALWAYS);
-
-    // Before the login only the top row can be used; LOGIN_OK switches it around.
-    setLoginEnabled(true);
-    setChatEnabled(false);
-
-    // Event handlers run on the JavaFX thread when the user clicks or presses Enter.
-    // Each lambda just calls the method that does the work.
-    joinButton.setOnAction(event -> join());
-    sendButton.setOnAction(event -> send());
-    inputField.setOnAction(event -> send()); // Enter in the input field also sends
-
-    // Put the three parts into a BorderPane and show the window.
-    BorderPane root = new BorderPane();
-    root.setTop(top);
-    root.setCenter(messageArea);
-    root.setBottom(bottom);
-    root.setPadding(new Insets(10));
-    BorderPane.setMargin(messageArea, new Insets(10, 0, 10, 0));
+    // The center of a BorderPane takes all the space that the bottom row leaves.
+    BorderPane root = new BorderPane(messages);
+    root.setBottom(input);
     stage.setTitle("Love Letter Chat");
-    stage.setScene(new Scene(root, 500, 400));
+    stage.setScene(new Scene(root, 400, 300));
     stage.show();
+    input.requestFocus();
 
     connect(host, port);
   }
@@ -114,26 +76,21 @@ public class ChatWindow extends Application {
    * server frees the name and tells the others "name left the room".
    */
   @Override
-  public void stop() {
+  public void stop() throws IOException {
     // socket is null if connecting failed; then there is nothing to close.
     if (socket != null) {
-      try {
-        socket.close();
-      } catch (IOException e) {
-        // The program ends anyway; nothing left to do.
-      }
+      socket.close();
     }
   }
 
   /**
-   * Opens the connection and starts the reading thread. If the server cannot be reached, a
-   * message is shown instead and the window stays open without crashing.
+   * Opens the connection and starts the reading thread. If the server cannot be reached, the
+   * reason is shown and the input field is locked.
    *
    * @param host the server host
    * @param port the server port
    */
   private void connect(String host, int port) {
-    // Open the socket with the same UTF-8 reader and writer as in Client.
     try {
       socket = new Socket(host, port);
       in = new BufferedReader(
@@ -141,106 +98,59 @@ public class ChatWindow extends Application {
       out = new PrintWriter(
           new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true);
     } catch (IOException e) {
-      // No server: show the reason and lock everything, because nothing can be sent.
-      messageArea.appendText("Cannot connect to " + host + ":" + port + ": "
-          + e.getMessage() + "\n");
-      setLoginEnabled(false);
+      messages.appendText("Cannot connect to " + host + ":" + port + ": " + e.getMessage() + "\n");
+      input.setDisable(true);
       return;
     }
-
-    // Reading blocks until the server sends a line, so it needs its own thread; otherwise
-    // the window would freeze. A daemon thread does not keep the program alive after the
-    // window is closed. this::readMessages is the same method reference as in Client.
+    // Reading blocks, so it needs its own thread or the window would freeze. A daemon thread
+    // does not keep the program alive after the window is closed.
     Thread reader = new Thread(this::readMessages);
     reader.setDaemon(true);
     reader.start();
   }
 
-  /** Runs on the JavaFX thread (Join button). Sends the entered name as LOGIN. */
-  private void join() {
-    // The server checks and trims the name and answers LOGIN_OK or LOGIN_ERROR.
-    out.println(new Message(Message.LOGIN, nameField.getText(), null).toJson());
-  }
-
   /**
-   * Runs on the JavaFX thread (Send button or Enter). Sends the line as INPUT and clears the
-   * field. "bye" and "/bye" are sent like any other line; the server then ends the connection.
+   * Runs on the JavaFX thread (Enter). Sends the line as LOGIN before the login and as INPUT
+   * after it, then clears the field.
    */
   private void send() {
-    out.println(new Message(Message.INPUT, null, inputField.getText()).toJson());
-    inputField.clear();
+    if (loggedIn) {
+      out.println(new Message(Message.INPUT, null, input.getText()).toJson());
+    } else {
+      out.println(new Message(Message.LOGIN, input.getText(), null).toJson());
+    }
+    input.clear();
   }
 
-  /**
-   * Runs in the reading thread. Reads lines from the server until the connection ends and
-   * hands each message to the JavaFX thread.
-   */
+  /** Runs in the reading thread. Hands every server message to the JavaFX thread. */
   private void readMessages() {
     try {
       String line;
       while ((line = in.readLine()) != null) {
         Message message = Message.fromJson(line);
-        // This thread must not touch the window. runLater queues the lambda, and the
-        // JavaFX thread runs it as soon as it can.
-        Platform.runLater(() -> showMessage(message));
+        Platform.runLater(() -> show(message));
       }
     } catch (IOException e) {
       // A closed socket ends reading just like the end of the stream.
     }
-    // Stream ended (server closed the connection, e.g. after "bye"): tell the JavaFX thread.
-    Platform.runLater(() -> connectionClosed());
+    Platform.runLater(() -> {
+      messages.appendText("Connection closed.\n");
+      input.setDisable(true);
+    });
   }
 
   /**
-   * Runs on the JavaFX thread. Shows one message from the server and switches the fields
-   * after a successful login.
+   * Runs on the JavaFX thread. LOGIN_OK switches the field to chat input; every other message
+   * is shown the same way as in the console client.
    *
    * @param message the message from the server
    */
-  private void showMessage(Message message) {
-    String type = message.getType();
-    if (Message.LOGIN_OK.equals(type)) {
-      // Logged in: the name can no longer be changed, chatting is now possible.
-      setLoginEnabled(false);
-      setChatEnabled(true);
-      inputField.requestFocus();
-    } else if (Message.LOGIN_ERROR.equals(type)) {
-      // Name rejected: show why; the top row stays enabled for the next try.
-      messageArea.appendText("Login failed: " + message.getText() + "\n");
-    } else if (Message.CHAT.equals(type)) {
-      messageArea.appendText(message.getName() + ": " + message.getText() + "\n");
-    } else if (Message.ERROR.equals(type)) {
-      messageArea.appendText("Error: " + message.getText() + "\n");
+  private void show(Message message) {
+    if (Message.LOGIN_OK.equals(message.getType())) {
+      loggedIn = true;
+      input.setPromptText("Message");
     } else {
-      // INFO, e.g. "welcome anna" or "ben joined the room".
-      messageArea.appendText(message.getText() + "\n");
+      messages.appendText(Client.format(message) + "\n");
     }
-  }
-
-  /** Runs on the JavaFX thread when the connection has ended. Locks all input. */
-  private void connectionClosed() {
-    messageArea.appendText("Connection closed.\n");
-    setLoginEnabled(false);
-    setChatEnabled(false);
-  }
-
-  /**
-   * Enables or disables the top row (name field and Join button).
-   *
-   * @param enabled true to allow input
-   */
-  private void setLoginEnabled(boolean enabled) {
-    nameField.setDisable(!enabled);
-    joinButton.setDisable(!enabled);
-  }
-
-  /**
-   * Enables or disables the bottom row (input field and Send button).
-   *
-   * @param enabled true to allow input
-   */
-  private void setChatEnabled(boolean enabled) {
-    inputField.setDisable(!enabled);
-    sendButton.setDisable(!enabled);
   }
 }

@@ -45,8 +45,8 @@ java -jar target/loveletter-jar-with-dependencies.jar gui
 java -jar target/loveletter-jar-with-dependencies.jar gui localhost 4000
 ```
 
-Oben Namen eingeben und *Join* klicken; danach unten Text eingeben und *Send* klicken oder Enter
-drücken. Das Fenster nutzt denselben Server und dasselbe Protokoll wie der Konsolen-Client, beide
+Unten zuerst den Namen eingeben und Enter drücken, danach jede Zeile mit Enter senden – wie beim
+Konsolen-Client. Das Fenster nutzt denselben Server und dasselbe Protokoll wie der Konsolen-Client, beide
 können also miteinander chatten. Fenster schließen beendet die Verbindung.
 
 Namensregeln: Leerzeichen am Rand werden entfernt; der Name darf nicht leer sein, keine Leerzeichen
@@ -88,7 +88,7 @@ src/main/java/de/lmu/sep/loveletter/
   Server.java          nimmt Verbindungen an, verwaltet angemeldete Clients, Broadcast
   ClientHandler.java   ein Thread pro Client auf dem Server: Login, Chat, Aufräumen
   Client.java          Konsolen-Client: Login, Lese-Thread, Eingabe senden
-  ChatWindow.java      JavaFX-Chatfenster: Join, Send, Lese-Thread gibt Nachrichten per runLater aus
+  ChatWindow.java      JavaFX-Chatfenster: Nachrichtenfeld + Eingabefeld, Lese-Thread per runLater
   Message.java         eine Protokollnachricht, als JSON-Zeile (Gson)
 src/main/java/de/lmu/sep/loveletter/model/
   CardType.java        die 8 Kartenarten mit Wert und Anzahl im Deck
