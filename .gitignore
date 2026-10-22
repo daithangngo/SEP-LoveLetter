@@ -13,3 +13,6 @@ bin/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local project notes (course material, notes for me and the LLM)
+docs/projekt/
