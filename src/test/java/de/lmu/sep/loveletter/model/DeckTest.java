@@ -1,6 +1,7 @@
 package de.lmu.sep.loveletter.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -54,6 +55,15 @@ class DeckTest {
   }
 
   @Test
+  void shuffleChangesOrder() {
+    Deck unshuffled = new Deck(new Random(42));
+    Deck shuffled = new Deck(new Random(42));
+    shuffled.shuffle();
+
+    assertNotEquals(unshuffled.getCards(), shuffled.getCards());
+  }
+
+  @Test
   void sameSeedGivesSameOrder() {
     Deck first = new Deck(new Random(42));
     Deck second = new Deck(new Random(42));
@@ -61,6 +71,18 @@ class DeckTest {
     second.shuffle();
 
     assertEquals(first.getCards(), second.getCards());
+  }
+
+  @Test
+  void cardsCannotBeChangedFromOutside() {
+    Deck deck = new Deck(new Random(42));
+
+    assertThrows(UnsupportedOperationException.class, () -> deck.getCards().clear());
+  }
+
+  @Test
+  void deckNeedsRandom() {
+    assertThrows(NullPointerException.class, () -> new Deck(null));
   }
 
   private static int countOf(Deck deck, CardType type) {
