@@ -14,5 +14,5 @@ bin/
 .DS_Store
 Thumbs.db
 
-# Local project notes (course material, notes for me and the LLM)
+# Local notes, not part of the submission
 docs/projekt/
