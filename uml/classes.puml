@@ -99,6 +99,10 @@ package de.lmu.sep.loveletter.model {
     BARON
     PRIEST
     GUARD
+    BLACK_MARK
+    MIRROR
+    OCCULTIST
+    PHANTOM
     - name : String
     - value : int
     - countInDeck : int
@@ -110,7 +114,11 @@ package de.lmu.sep.loveletter.model {
 
   class Deck {
     - cards : List<CardType>
-    + Deck()
+    - random : Random
+    + Deck(random : Random)
+    + shuffle() : void
+    + draw() : CardType
+    + isEmpty() : boolean
     + getCards() : List<CardType>
   }
 
@@ -139,7 +147,7 @@ package de.lmu.sep.loveletter.model {
     - faceUpCards : List<CardType>
     - players : List<Player>
     - currentPlayerIndex : int
-    + Round(players : List<Player>)
+    + Round(players : List<Player>, deck : Deck)
     + getDeck() : Deck
     + getSetAsideCard() : CardType
     + setSetAsideCard(setAsideCard : CardType) : void
@@ -174,7 +182,7 @@ ChatWindow ..> Client : format()
 ' Model
 Game "1" o-- "2..4" Player : players
 Game --> "0..1" Round : currentRound
-Round "1" *-- "1" Deck : deck
+Round "1" o-- "1" Deck : deck
 Round o-- "2..4" Player : players
 Round --> "0..1" CardType : setAsideCard
 Round --> "0..3" CardType : faceUpCards
