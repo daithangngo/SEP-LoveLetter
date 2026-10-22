@@ -6,19 +6,21 @@ import java.util.List;
 /** One round of Love Letter: the cards on the table and whose turn it is. */
 public class Round {
 
-  private final Deck deck = new Deck();
+  private final Deck deck;
   private CardType setAsideCard;
   private final List<CardType> faceUpCards = new ArrayList<>();
   private final List<Player> players;
   private int currentPlayerIndex;
 
   /**
-   * Creates a round with a full deck, no set-aside card and the first player to move.
+   * Creates a round with the given deck, no set-aside card and the first player to move.
    *
    * @param players the players of the game, in turn order
+   * @param deck the draw pile for this round; passed in so tests can use a deck in a known order
    */
-  public Round(List<Player> players) {
+  public Round(List<Player> players, Deck deck) {
     this.players = players;
+    this.deck = deck;
   }
 
   public Deck getDeck() {
