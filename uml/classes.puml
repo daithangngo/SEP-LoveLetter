@@ -103,36 +103,51 @@ package de.lmu.sep.loveletter.model {
     MIRROR
     OCCULTIST
     PHANTOM
+    DOPPELGANGER
+    + {static} MIN_VALUE : int = 0
+    + {static} MAX_VALUE : int = 8
     - name : String
     - value : int
+    - randomValue : boolean
     - countInDeck : int
     - CardType(name : String, value : int, countInDeck : int)
+    - CardType(name : String, countInDeck : int)
     + getName() : String
     + getValue() : int
+    + hasRandomValue() : boolean
     + getCountInDeck() : int
   }
 
+  class Card <<record>> {
+    + type : CardType
+    + value : int
+    + Card(type : CardType, value : int)
+    + Card(type : CardType)
+    + toString() : String
+  }
+
   class Deck {
-    - cards : List<CardType>
+    - cards : List<Card>
     - random : Random
     + Deck(random : Random)
+    + Deck(cards : List<Card>)
     + shuffle() : void
-    + draw() : CardType
+    + draw() : Card
     + isEmpty() : boolean
-    + getCards() : List<CardType>
+    + getCards() : List<Card>
   }
 
   class Player {
     - name : String
-    - hand : List<CardType>
-    - discardPile : List<CardType>
+    - hand : List<Card>
+    - discardPile : List<Card>
     - tokens : int
     - inRound : boolean
     - protectedByHandmaid : boolean
     + Player(name : String)
     + getName() : String
-    + getHand() : List<CardType>
-    + getDiscardPile() : List<CardType>
+    + getHand() : List<Card>
+    + getDiscardPile() : List<Card>
     + getTokens() : int
     + setTokens(tokens : int) : void
     + isInRound() : boolean
@@ -143,15 +158,15 @@ package de.lmu.sep.loveletter.model {
 
   class Round {
     - deck : Deck
-    - setAsideCard : CardType
-    - faceUpCards : List<CardType>
+    - setAsideCard : Card
+    - faceUpCards : List<Card>
     - players : List<Player>
     - currentPlayerIndex : int
     + Round(players : List<Player>, deck : Deck)
     + getDeck() : Deck
-    + getSetAsideCard() : CardType
-    + setSetAsideCard(setAsideCard : CardType) : void
-    + getFaceUpCards() : List<CardType>
+    + getSetAsideCard() : Card
+    + setSetAsideCard(setAsideCard : Card) : void
+    + getFaceUpCards() : List<Card>
     + getPlayers() : List<Player>
     + getCurrentPlayerIndex() : int
     + setCurrentPlayerIndex(currentPlayerIndex : int) : void
@@ -184,8 +199,9 @@ Game "1" o-- "2..4" Player : players
 Game --> "0..1" Round : currentRound
 Round "1" o-- "1" Deck : deck
 Round o-- "2..4" Player : players
-Round --> "0..1" CardType : setAsideCard
-Round --> "0..3" CardType : faceUpCards
-Player --> "*" CardType : hand, discardPile
-Deck --> "*" CardType : cards
+Round --> "0..1" Card : setAsideCard
+Round --> "0..3" Card : faceUpCards
+Player --> "*" Card : hand, discardPile
+Deck --> "*" Card : cards
+Card --> "1" CardType : type
 @enduml

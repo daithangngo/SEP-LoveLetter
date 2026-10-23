@@ -111,11 +111,12 @@ src/main/java/de/lmu/sep/loveletter/
   Message.java         one protocol message, as a JSON line (Gson)
 src/main/java/de/lmu/sep/loveletter/model/
   CardType.java        the original and custom card types with value and count
-  Deck.java            draw pile with 30 cards: shuffle, draw
+  Card.java            one card: type and value (the Doppelganger's value is rolled per card)
+  Deck.java            draw pile with 32 cards: shuffle, draw; or a fixed order for tests
   Player.java          hand, discard pile, tokens, status in the round
   Round.java           deck, set-aside cards, players, whose turn it is
   Game.java            players and current round
-src/test/java/...      ServerTest, MessageTest, ChatIntegrationTest, model/DeckTest
+src/test/java/...      ServerTest, MessageTest, ChatIntegrationTest, model/CardTest, model/DeckTest
 uml/classes.puml       UML class diagram (PlantUML), rendered as loveletter-uml.png and .svg
 ```
 
