@@ -110,8 +110,8 @@ src/main/java/de/lmu/sep/loveletter/
   ChatWindow.java      JavaFX chat window: message area + input field, reading thread via runLater
   Message.java         one protocol message, as a JSON line (Gson)
 src/main/java/de/lmu/sep/loveletter/model/
-  CardType.java        the 8 card types with value and count in the deck
-  Deck.java            draw pile with 16 cards
+  CardType.java        the original and custom card types with value and count
+  Deck.java            draw pile with 30 cards: shuffle, draw
   Player.java          hand, discard pile, tokens, status in the round
   Round.java           deck, set-aside cards, players, whose turn it is
   Game.java            players and current round

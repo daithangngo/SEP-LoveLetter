@@ -1,6 +1,12 @@
 package de.lmu.sep.loveletter.model;
 
-/** The eight kinds of cards in Love Letter, with value and how often each is in the deck. */
+/**
+ * The kinds of cards in the game, with value and how often each is in the deck.
+ *
+ * <p>The first eight are the original Love Letter cards, the rest are the custom cards from
+ * exercise sheet 2a. The Doppelganger from sheet 2a is still missing, because its value is rolled
+ * per card and does not fit a fixed value per type.
+ */
 public enum CardType {
   PRINCESS("Princess", 8, 1),
   COUNTESS("Countess", 7, 1),
@@ -9,7 +15,11 @@ public enum CardType {
   HANDMAID("Handmaid", 4, 2),
   BARON("Baron", 3, 2),
   PRIEST("Priest", 2, 2),
-  GUARD("Guard", 1, 5);
+  GUARD("Guard", 1, 5),
+  BLACK_MARK("Black Mark", 5, 4),
+  MIRROR("Mirror", 4, 4),
+  OCCULTIST("Occultist", 3, 3),
+  PHANTOM("Phantom", 0, 3);
 
   private final String name;
   private final int value;
