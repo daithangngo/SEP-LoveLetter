@@ -146,16 +146,21 @@ Do this **before** writing rules, so no rule code ever depends on bare `CardType
 - [x] Revise E-006 in 07 (timing changed).
 - Moved to F1.5: "playing a custom card = discard without effect" (there is no play code yet).
 
-### F1.2 Command handler + direct message · `feature/commands` · ⬜
-- [ ] Move command parsing out of `ClientHandler.chat()` into its own class (e.g. `CommandHandler`).
-- [ ] `/msg <name> <text>`: only the receiver (and the sender, as confirmation) see it.
-- [ ] `/help` lists all commands with their arguments.
-- [ ] Errors: unknown name, message to yourself, missing text, unknown command → helpful `ERROR`.
-- [ ] **Fix the crash:** malformed JSON, `null` text, or a non-`INPUT` type after login → `ERROR`,
+### F1.2 Command handler + direct message · `feature/commands` · ✅
+- [x] Command parsing in **one** method `ClientHandler.handleCommand()` (a `switch`). Kept minimal:
+      it moves into its own class in F1.3, once the game commands make it big enough.
+- [x] `/msg <name> <text>`: only the receiver gets it (new type `PRIVATE`), the sender gets an
+      `INFO` confirmation.
+- [x] `/help` lists all commands with their arguments.
+- [x] Errors: unknown name, message to yourself, missing text, unknown command → helpful `ERROR`.
+- [x] **Fix the crash:** malformed JSON, `null` text, or a non-`INPUT` type after login → `ERROR`,
       and the connection stays open.
-- [ ] Integration tests in the style of `ChatIntegrationTest`.
+- [x] Integration tests in the style of `ChatIntegrationTest` (4 new: private message, its
+      errors, `/help`, broken input).
 
 ### F1.3 Lobby: create, join, start, score · `feature/lobby` · ⬜
+- [ ] Move `handleCommand()` into its own class (e.g. `CommandHandler`) before adding the game
+      commands.
 - [ ] `/create`: exactly one game per server (error: "a game already exists").
 - [ ] `/join <days> <age>`: only before the start; max 4; not twice; argument validation.
 - [ ] `/start`: only by a joined player; at least 2 players (error tells how many are missing).
