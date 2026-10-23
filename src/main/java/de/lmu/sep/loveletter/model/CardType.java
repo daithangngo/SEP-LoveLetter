@@ -20,6 +20,8 @@ public enum CardType {
   MIRROR("Mirror", 4, 4),
   OCCULTIST("Occultist", 3, 3),
   PHANTOM("Phantom", 0, 3),
+  // No value here: sheet 2a gives every Doppelganger card its own random value (0 to 8), so
+  // both copies can differ. The value is rolled in Deck and stored in Card, not in the type.
   DOPPELGANGER("Doppelganger", 2);
 
   /** The lowest value a card can have. */
@@ -30,6 +32,8 @@ public enum CardType {
 
   private final String name;
   private final int value;
+  // true only for the Doppelganger. An enum constant exists once for all cards of its type, so
+  // it cannot hold a different value per card; this flag tells Deck and Card to treat it apart.
   private final boolean randomValue;
   private final int countInDeck;
 
@@ -44,6 +48,7 @@ public enum CardType {
   /** Creates a type whose value is rolled for each card. */
   CardType(String name, int countInDeck) {
     this.name = name;
+    // Placeholder only, never read: getValue() refuses to return it.
     this.value = 0;
     this.randomValue = true;
     this.countInDeck = countInDeck;
@@ -67,6 +72,8 @@ public enum CardType {
    */
   public int getValue() {
     if (randomValue) {
+      // Fail loudly instead of returning the placeholder: a wrong value would silently break
+      // every comparison (Baron, Guard, round end).
       throw new IllegalStateException(name + " has no fixed value, use Card.value()");
     }
     return value;

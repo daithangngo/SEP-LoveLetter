@@ -10,6 +10,8 @@ import java.util.Random;
 public class Deck {
 
   private final List<Card> cards;
+  // Used for shuffling and for the Doppelganger values. Passed in from outside so that tests
+  // can use a fixed seed and always get the same order and the same values.
   private final Random random;
 
   /**
@@ -24,6 +26,8 @@ public class Deck {
     this.cards = new ArrayList<>();
     for (CardType type : CardType.values()) {
       for (int i = 0; i < type.getCountInDeck(); i++) {
+        // A Doppelganger gets its own rolled value, so the two copies can differ (sheet 2a).
+        // All other cards take the fixed value of their type.
         cards.add(type.hasRandomValue() ? new Card(type, rollValue()) : new Card(type));
       }
     }
@@ -40,7 +44,9 @@ public class Deck {
     this.random = new Random();
   }
 
+  /** Rolls a Doppelganger value from 0 to 8, both included. */
   private int rollValue() {
+    // nextInt excludes the upper bound, so + 1 makes 8 possible.
     return random.nextInt(CardType.MIN_VALUE, CardType.MAX_VALUE + 1);
   }
 

@@ -24,12 +24,14 @@ public record Card(CardType type, int value) {
   public Card {
     Objects.requireNonNull(type, "type must not be null");
     if (type.hasRandomValue()) {
+      // Doppelganger: any rolled value from 0 to 8 is valid.
       if (value < CardType.MIN_VALUE || value > CardType.MAX_VALUE) {
         throw new IllegalArgumentException(
             type.getName() + " needs a value from " + CardType.MIN_VALUE + " to "
                 + CardType.MAX_VALUE + ", got " + value);
       }
     } else if (value != type.getValue()) {
+      // Every other type: the value must be the fixed value of the type, e.g. a Guard is 1.
       throw new IllegalArgumentException(
           type.getName() + " has the value " + type.getValue() + ", got " + value);
     }
