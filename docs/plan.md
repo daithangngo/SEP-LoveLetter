@@ -94,24 +94,39 @@ Goal: no feature gets blocked by an undecided question.
 | D5 | Questions mid-turn (Mirror reaction, Doppelganger copy) | `Round` has a "pending decision" (who must answer, about what). While it is set, only that player's answer is accepted. | A small state machine instead of blocking a thread while waiting. |
 | D6 | Player leaves mid-game | They are eliminated from the round and removed from the game. If fewer than 2 players remain, the game ends. | Never leaves the game stuck waiting for someone who is gone. |
 
-### P0.3 Rule questions: set a default now, ask the tutor, and change it if the answer differs
+### P0.3 Rule questions: answer from the course materials, ask the tutor only the rest
 
-Implement each rule in **one** place, so that changing an answer costs one method.
+Order of authority: sheets (1, 2, 2a) → official rulebook (binding per sheet 1) → Merkblatt and
+slides → tutor diagram. Implement each rule in **one** place, so that changing an answer costs one
+method.
 
-| F-xx | Needed by | Suggested default until answered |
-|------|-----------|----------------------------------|
-| F-14 turn order | F1.4 | Join order, cyclic, starting at the start player |
-| F-01, F-15 date / age | F1.3, F1.4, F2.5 | Asked at `/join <daysSinceLastDate> <age>`. Fewer days = more recent date = wins the comparison. Tie on both → join order |
-| F-17, F-19 Guard: number or name? | F1.5, F2.2 | **Card name** (not "Guard"), the same as Phantom. Avoids "value 4 = Handmaid **and** Mirror" |
-| F-18 next start player when there are several winners | F1.6 | Tutor diagram: youngest |
-| F-07 Black Mark owner already out | F2.1 | Still wins (like Phantom: the effect outlives the player) |
-| F-08 Phantom names | F2.2 | Any card name allowed |
+**Settled from the materials** (logged as E-007 … E-011 in 07):
+
+| F-xx | Answer | Needed by |
+|------|--------|-----------|
+| F-11 indentation | **4 spaces**, no tabs → one reformat commit **before** F1.1 | P0.4 |
+| F-12, F-13 jar / Javadoc | One fat jar; Javadoc HTML in `docs/javadoc/` | F3.1, F3.3 |
+| F-14, F-15, F-18 turn order / start player | Join order, cyclic. First round: fewest days since last date → youngest → join order. Next round: the winner; several winners → fewest days, then as above. `/join <daysSinceLastDate> <age>` | F1.3, F1.4, F1.6 |
+| F-17, F-19 Guard | Name a **number** other than 1 (0 allowed). It hits **every** card with that value, the Doppelganger by its random value | F1.5 |
+| F-08 Phantom names | Any card name, "Guard" and "Phantom" included | F2.2 |
+| F-09 Doppelganger | Protected players are not valid targets. Shown as e.g. `Doppelganger (5)` | F2.5 |
+| F-02 Mirror reaction | Only a player holding a Mirror is asked | F2.4 |
+
+**Sent to the tutor** (23.10). Default until answered:
+
+| F-xx | Needed by | Default until answered |
+|------|-----------|------------------------|
+| F-03, F-04 Mirror | F2.4 | A played Mirror lasts until it triggers or until its owner's next turn. "Reflect" = the actor becomes the target of their own effect |
 | F-05, F-06 Occultist | F2.3 | Exclusions apply to revival **and** sum elimination. The revived player plays one of their 2 cards without drawing. If the deck has fewer than 2 cards, draw what is left plus the set-aside card |
-| F-02, F-03, F-04 Mirror | F2.4 | Ask the target only if they hold a Mirror. A played Mirror lasts until it triggers or until its owner's next turn. "Reflect" = the actor and target swap roles |
-| F-09 Doppelganger | F2.5 | Protected players are not valid targets. Its value is shown with its name, e.g. `Doppelganger (5)` |
+| F-01 Doppelganger | F2.5 | Fewer days since the last date wins the comparison |
+| F-07 Black Mark owner already out | F2.1 | Still wins (like Phantom: the effect outlives the player) |
 
-- [ ] Send F-01 … F-19 to the tutor (Discord / mail) **today**. Don't wait for the weekly meeting.
-- [ ] Log the chosen defaults in 07.
+- [x] Settle what the materials answer and log it in 07 (E-007 … E-011).
+- [ ] Send the 4 remaining questions to the tutor (Discord) **today**.
+
+### P0.4 Reformat to 4 spaces · `style/indentation`
+- [ ] Reformat all Java files to 4-space indentation in **one** commit (`style: switch to 4-space indentation`), with no other changes.
+- [ ] `mvn clean package` still green.
 
 ---
 
@@ -151,9 +166,9 @@ Do this **before** writing rules, so no rule code ever depends on bare `CardType
 ### F1.4 Round setup and turn loop · `feature/turns` · ⬜
 - [ ] Setup: shuffle, set aside 1 card face down, with 2 players 3 face-up cards (broadcast them),
       deal 1 card each.
-- [ ] Start player: most recent date → youngest (F-14 / F-15 default).
+- [ ] Start player: fewest days since last date → youngest → join order (E-009).
 - [ ] Turn start: draw → send the hand **privately** (`HAND`) → broadcast "it is X's turn" (`GAME`).
-- [ ] `/play <card> [player] [cardName]` and `/hand` (re-send your own hand).
+- [ ] `/play <card> [player] [number|cardName]` and `/hand` (re-send your own hand).
 - [ ] Errors: not your turn, card not in hand, no game running, you are eliminated.
 - [ ] Central `eliminate(player, reason)`: the **only** place that sets `inRound = false`.
       Phase 2 hooks into it.
@@ -161,7 +176,7 @@ Do this **before** writing rules, so no rule code ever depends on bare `CardType
 
 ### F1.5 Original card effects · `feature/original-cards` · ⬜
 One commit + test class section per card; tests use a stacked deck.
-- [ ] Guard: name a card (not Guard); hit → eliminated.
+- [ ] Guard: name a number 0–8 except 1; it hits any card with that value → eliminated (E-008).
 - [ ] Priest: the target's hand is shown **only** to the actor.
 - [ ] Baron: compare privately; lower value out; tie → nothing.
 - [ ] Handmaid: protected until your next turn.
@@ -179,7 +194,7 @@ One commit + test class section per card; tests use a stacked deck.
 - [ ] Only one player left → they win.
 - [ ] 1 token per round winner; check the game goal after every token.
 - [ ] Tie-break round: if several players reach the goal at the same time, only they play on.
-- [ ] Next round: the winner starts (several winners → F-18 default); everything reshuffled.
+- [ ] Next round: the winner starts (several winners → fewest days since last date, E-009); everything reshuffled.
 - [ ] Game over → broadcast the winner; a new `/create` is possible.
 
 ### F1.7 Robustness · `feature/disconnect` · ⬜
@@ -204,7 +219,7 @@ own branch with its own test class (e.g. `BlackMarkTest`).
 - [ ] Tests: self-mark, mark expires, eliminated by Guard / Baron / Prince-Princess.
 
 ### F2.2 Phantom · `feature/phantom` · ⬜
-- [ ] Target another unprotected player + any card name (reuses Guard's name parsing).
+- [ ] Target another unprotected player + any card name, Guard and Phantom included (E-010).
 - [ ] The curse is stored on the target. It is checked at their next turn **before drawing**, then
       removed.
 - [ ] The curse persists if the Phantom player is eliminated. Several curses → check all.
@@ -252,7 +267,7 @@ Covers: 2.1a–d, 2.G1–G3, 1.19.
 ### F3.1 Javadoc · `docs/javadoc` · ⬜
 - [ ] Every public and protected element documented; the `mvn javadoc:javadoc` output has **no warnings**.
 - [ ] Configure `maven-javadoc-plugin` (standard plugin, allowed) to write to a tracked folder,
-      e.g. `docs/javadoc/` (F-13), including private members if wanted.
+      `docs/javadoc/` (E-007), including private members if wanted.
 - [ ] Commit the generated HTML (`docs: generate javadoc html`).
 
 ### F3.2 README and UML · ⬜
@@ -261,8 +276,8 @@ Covers: 2.1a–d, 2.G1–G3, 1.19.
 - [ ] `uml/classes.puml` with the new classes → re-render `.png` / `.svg`.
 
 ### F3.3 Release check · ⬜
-- [ ] Settle F-11 (2 vs. 4 spaces). If it must be 4, reformat in **one** separate commit.
-- [ ] Jar on other machines (F-12): either build on the OS used for the Abnahme, or add the JavaFX
+- [ ] Check that all new code uses 4-space indentation (E-007, reformat done in P0.4).
+- [ ] Jar on other machines (E-007 / E-004): either build on the OS used for the Abnahme, or add the JavaFX
       platform jars for Windows, macOS and Linux to the fat jar. Ask before changing the pom.
 - [ ] Fresh clone → `mvn clean package` → server + 3 clients → play one full game.
 - [ ] Update 05-ist-stand.md and the "already in the code" table in 03 (both are stale now).
@@ -313,7 +328,7 @@ No new fields in `Message`, so the console client and the GUI only need a case i
 | Tutor answers arrive late or contradict the defaults | Each rule in one method; the defaults are logged, so a change is a small fix + test update |
 | Mirror / Doppelganger prompts get complicated | D5 decided up front; Mirror is built before the Doppelganger; worst case, Mirror as a reaction is limited to the obvious cases and documented |
 | Time | M-A is the critical checkpoint. If it slips past 28.10, start Phase 2 anyway and do F1.7 in parallel |
-| The jar fails on the examiner's machine | F3.3 fresh-clone test; decide F-12 early |
+| The jar fails on the examiner's machine | F3.3 fresh-clone test; decide the JavaFX platform jars early |
 | Can't explain your own code in the Abnahme | Small commits; read every diff before merging; a short "how it works" walk-through rehearsal after M-B |
 
 ---
