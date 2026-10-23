@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import org.junit.jupiter.api.Test;
 
@@ -12,8 +14,8 @@ import org.junit.jupiter.api.Test;
 class DeckTest {
 
   @Test
-  void newDeckHasThirtyCards() {
-    assertEquals(30, new Deck(new Random(42)).getCards().size());
+  void newDeckHasThirtyTwoCards() {
+    assertEquals(32, new Deck(new Random(42)).getCards().size());
   }
 
   @Test
@@ -32,21 +34,57 @@ class DeckTest {
     assertEquals(4, countOf(deck, CardType.MIRROR));
     assertEquals(3, countOf(deck, CardType.OCCULTIST));
     assertEquals(3, countOf(deck, CardType.PHANTOM));
+    assertEquals(2, countOf(deck, CardType.DOPPELGANGER));
+  }
+
+  @Test
+  void fixedTypesKeepTheirValue() {
+    for (Card card : new Deck(new Random(42)).getCards()) {
+      if (!card.type().hasRandomValue()) {
+        assertEquals(card.type().getValue(), card.value(), card.toString());
+      }
+    }
+  }
+
+  @Test
+  void doppelgangerValuesAreFromZeroToEight() {
+    for (int seed = 0; seed < 100; seed++) {
+      for (int value : doppelgangerValues(new Deck(new Random(seed)))) {
+        assertTrue(value >= 0 && value <= 8, "seed " + seed + " gave " + value);
+      }
+    }
+  }
+
+  @Test
+  void doppelgangerValuesCoverZeroAndEight() {
+    List<Integer> seen = new ArrayList<>();
+    for (int seed = 0; seed < 100; seed++) {
+      seen.addAll(doppelgangerValues(new Deck(new Random(seed))));
+    }
+
+    assertTrue(seen.contains(0), "0 never rolled");
+    assertTrue(seen.contains(8), "8 never rolled");
+  }
+
+  @Test
+  void sameSeedGivesSameDoppelgangerValues() {
+    assertEquals(
+        doppelgangerValues(new Deck(new Random(7))), doppelgangerValues(new Deck(new Random(7))));
   }
 
   @Test
   void drawRemovesTopCard() {
     Deck deck = new Deck(new Random(42));
-    CardType top = deck.getCards().get(deck.getCards().size() - 1);
+    Card top = deck.getCards().get(deck.getCards().size() - 1);
 
     assertEquals(top, deck.draw());
-    assertEquals(29, deck.getCards().size());
+    assertEquals(31, deck.getCards().size());
   }
 
   @Test
   void drawingAllCardsEmptiesDeck() {
     Deck deck = new Deck(new Random(42));
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < 32; i++) {
       deck.draw();
     }
 
@@ -74,6 +112,26 @@ class DeckTest {
   }
 
   @Test
+  void stackedDeckDrawsInGivenOrder() {
+    Card guard = new Card(CardType.GUARD);
+    Card princess = new Card(CardType.PRINCESS);
+    Deck deck = new Deck(List.of(guard, princess));
+
+    assertEquals(princess, deck.draw());
+    assertEquals(guard, deck.draw());
+    assertTrue(deck.isEmpty());
+  }
+
+  @Test
+  void stackedDeckCopiesTheList() {
+    List<Card> cards = new ArrayList<>(List.of(new Card(CardType.GUARD)));
+    Deck deck = new Deck(cards);
+    cards.clear();
+
+    assertEquals(1, deck.getCards().size());
+  }
+
+  @Test
   void cardsCannotBeChangedFromOutside() {
     Deck deck = new Deck(new Random(42));
 
@@ -82,16 +140,31 @@ class DeckTest {
 
   @Test
   void deckNeedsRandom() {
-    assertThrows(NullPointerException.class, () -> new Deck(null));
+    assertThrows(NullPointerException.class, () -> new Deck((Random) null));
+  }
+
+  @Test
+  void stackedDeckNeedsCards() {
+    assertThrows(NullPointerException.class, () -> new Deck((List<Card>) null));
   }
 
   private static int countOf(Deck deck, CardType type) {
     int count = 0;
-    for (CardType card : deck.getCards()) {
-      if (card == type) {
+    for (Card card : deck.getCards()) {
+      if (card.type() == type) {
         count++;
       }
     }
     return count;
+  }
+
+  private static List<Integer> doppelgangerValues(Deck deck) {
+    List<Integer> values = new ArrayList<>();
+    for (Card card : deck.getCards()) {
+      if (card.type() == CardType.DOPPELGANGER) {
+        values.add(card.value());
+      }
+    }
+    return values;
   }
 }

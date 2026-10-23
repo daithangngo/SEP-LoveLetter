@@ -4,8 +4,8 @@ package de.lmu.sep.loveletter.model;
  * The kinds of cards in the game, with value and how often each is in the deck.
  *
  * <p>The first eight are the original Love Letter cards, the rest are the custom cards from
- * exercise sheet 2a. The Doppelganger from sheet 2a is still missing, because its value is rolled
- * per card and does not fit a fixed value per type.
+ * exercise sheet 2a. All types have a fixed value, except the Doppelganger: its value is rolled
+ * for each card when the deck is built, so it is stored in {@link Card}.
  */
 public enum CardType {
   PRINCESS("Princess", 8, 1),
@@ -19,15 +19,33 @@ public enum CardType {
   BLACK_MARK("Black Mark", 5, 4),
   MIRROR("Mirror", 4, 4),
   OCCULTIST("Occultist", 3, 3),
-  PHANTOM("Phantom", 0, 3);
+  PHANTOM("Phantom", 0, 3),
+  DOPPELGANGER("Doppelganger", 2);
+
+  /** The lowest value a card can have. */
+  public static final int MIN_VALUE = 0;
+
+  /** The highest value a card can have. */
+  public static final int MAX_VALUE = 8;
 
   private final String name;
   private final int value;
+  private final boolean randomValue;
   private final int countInDeck;
 
+  /** Creates a type with a fixed value. */
   CardType(String name, int value, int countInDeck) {
     this.name = name;
     this.value = value;
+    this.randomValue = false;
+    this.countInDeck = countInDeck;
+  }
+
+  /** Creates a type whose value is rolled for each card. */
+  CardType(String name, int countInDeck) {
+    this.name = name;
+    this.value = 0;
+    this.randomValue = true;
     this.countInDeck = countInDeck;
   }
 
@@ -41,8 +59,26 @@ public enum CardType {
     return name;
   }
 
+  /**
+   * Returns the fixed value of this type.
+   *
+   * @return the value, between {@link #MIN_VALUE} and {@link #MAX_VALUE}
+   * @throws IllegalStateException if this type has a random value; use {@link Card#value()}
+   */
   public int getValue() {
+    if (randomValue) {
+      throw new IllegalStateException(name + " has no fixed value, use Card.value()");
+    }
     return value;
+  }
+
+  /**
+   * Tells whether the value is rolled for each card instead of being fixed for the type.
+   *
+   * @return true for the Doppelganger, false for all other types
+   */
+  public boolean hasRandomValue() {
+    return randomValue;
   }
 
   public int getCountInDeck() {

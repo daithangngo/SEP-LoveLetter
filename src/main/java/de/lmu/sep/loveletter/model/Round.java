@@ -7,8 +7,8 @@ import java.util.List;
 public class Round {
 
   private final Deck deck;
-  private CardType setAsideCard;
-  private final List<CardType> faceUpCards = new ArrayList<>();
+  private Card setAsideCard;
+  private final List<Card> faceUpCards = new ArrayList<>();
   private final List<Player> players;
   private int currentPlayerIndex;
 
@@ -32,11 +32,11 @@ public class Round {
    *
    * @return the set-aside card, or null if none was set aside yet
    */
-  public CardType getSetAsideCard() {
+  public Card getSetAsideCard() {
     return setAsideCard;
   }
 
-  public void setSetAsideCard(CardType setAsideCard) {
+  public void setSetAsideCard(Card setAsideCard) {
     this.setAsideCard = setAsideCard;
   }
 
@@ -45,7 +45,7 @@ public class Round {
    *
    * @return the face-up cards, empty with 3 or 4 players
    */
-  public List<CardType> getFaceUpCards() {
+  public List<Card> getFaceUpCards() {
     return faceUpCards;
   }
 

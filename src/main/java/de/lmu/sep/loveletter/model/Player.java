@@ -7,8 +7,8 @@ import java.util.List;
 public class Player {
 
   private final String name;
-  private final List<CardType> hand = new ArrayList<>();
-  private final List<CardType> discardPile = new ArrayList<>();
+  private final List<Card> hand = new ArrayList<>();
+  private final List<Card> discardPile = new ArrayList<>();
   private int tokens;
   private boolean inRound;
   private boolean protectedByHandmaid;
@@ -26,11 +26,11 @@ public class Player {
     return name;
   }
 
-  public List<CardType> getHand() {
+  public List<Card> getHand() {
     return hand;
   }
 
-  public List<CardType> getDiscardPile() {
+  public List<Card> getDiscardPile() {
     return discardPile;
   }
 

@@ -9,22 +9,39 @@ import java.util.Random;
 /** The draw pile of one round. The top card is the last card in the list. */
 public class Deck {
 
-  private final List<CardType> cards = new ArrayList<>();
+  private final List<Card> cards;
   private final Random random;
 
   /**
-   * Creates a full deck with every card of every {@link CardType}, not shuffled yet.
+   * Creates a full deck with every card of every {@link CardType}, not shuffled yet. Each
+   * Doppelganger gets its own value from 0 to 8.
    *
-   * @param random the source of randomness for {@link #shuffle()}; tests pass a fixed seed so
-   *     the order of the cards is always the same
+   * @param random the source of randomness for the Doppelganger values and {@link #shuffle()};
+   *     tests pass a fixed seed so values and order are always the same
    */
   public Deck(Random random) {
     this.random = Objects.requireNonNull(random, "random must not be null");
+    this.cards = new ArrayList<>();
     for (CardType type : CardType.values()) {
       for (int i = 0; i < type.getCountInDeck(); i++) {
-        cards.add(type);
+        cards.add(type.hasRandomValue() ? new Card(type, rollValue()) : new Card(type));
       }
     }
+  }
+
+  /**
+   * Creates a deck with exactly the given cards in the given order. Meant for tests that need to
+   * know which card is drawn next.
+   *
+   * @param cards the cards, bottom first and top last; the list is copied
+   */
+  public Deck(List<Card> cards) {
+    this.cards = new ArrayList<>(Objects.requireNonNull(cards, "cards must not be null"));
+    this.random = new Random();
+  }
+
+  private int rollValue() {
+    return random.nextInt(CardType.MIN_VALUE, CardType.MAX_VALUE + 1);
   }
 
   /** Puts the cards into a random order. */
@@ -38,7 +55,7 @@ public class Deck {
    * @return the card that was on top
    * @throws IllegalStateException if the deck is empty
    */
-  public CardType draw() {
+  public Card draw() {
     if (cards.isEmpty()) {
       throw new IllegalStateException("cannot draw from an empty deck");
     }
@@ -61,7 +78,7 @@ public class Deck {
    *
    * @return a read-only view of the cards
    */
-  public List<CardType> getCards() {
+  public List<Card> getCards() {
     return Collections.unmodifiableList(cards);
   }
 }
