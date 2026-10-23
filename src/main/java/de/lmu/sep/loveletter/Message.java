@@ -7,7 +7,8 @@ import com.google.gson.Gson;
  *
  * <p>Client to server: {@link #LOGIN} (name), {@link #INPUT} (text).
  * Server to client: {@link #LOGIN_OK}, {@link #LOGIN_ERROR} (text), {@link #INFO} (text),
- * {@link #CHAT} (name, text), {@link #ERROR} (text). Fields that a type does not use are null.
+ * {@link #CHAT} (name, text), {@link #PRIVATE} (name, text), {@link #ERROR} (text). Fields
+ * that a type does not use are null.
  */
 public class Message {
 
@@ -17,6 +18,8 @@ public class Message {
   public static final String LOGIN_ERROR = "LOGIN_ERROR";
   public static final String INFO = "INFO";
   public static final String CHAT = "CHAT";
+  /** A direct message: only the receiver gets it; name is the sender. */
+  public static final String PRIVATE = "PRIVATE";
   public static final String ERROR = "ERROR";
 
   private static final Gson GSON = new Gson();
@@ -65,7 +68,8 @@ public class Message {
    * Reads a message from one line of JSON.
    *
    * @param json the JSON text produced by {@link #toJson()}
-   * @return the message
+   * @return the message, or null if the line is empty
+   * @throws com.google.gson.JsonParseException if the line is not valid JSON for a message
    */
   public static Message fromJson(String json) {
     return GSON.fromJson(json, Message.class);

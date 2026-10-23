@@ -3,6 +3,7 @@ package de.lmu.sep.loveletter;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -144,11 +145,94 @@ class ChatIntegrationTest {
       send(annaOut, Message.INPUT, null, "/dance");
       Message error = receive(annaIn);
       assertEquals(Message.ERROR, error.getType());
-      assertEquals("unknown command: /dance", error.getText());
+      assertEquals("unknown command: /dance, type /help for a list", error.getText());
 
       // If ben had received the error, it would arrive before this chat line.
       send(annaOut, Message.INPUT, null, "still here");
       assertChat(receive(benIn), "anna", "still here");
+    }
+  }
+
+  @Test
+  void privateMessageReachesOnlyReceiver() throws Exception {
+    try (Socket anna = connect(); Socket ben = connect(); Socket carl = connect()) {
+      BufferedReader annaIn = reader(anna);
+      PrintWriter annaOut = writer(anna);
+      BufferedReader benIn = reader(ben);
+      BufferedReader carlIn = reader(carl);
+      login(annaIn, annaOut, "anna");
+      login(benIn, writer(ben), "ben");
+      assertEquals("ben joined the room", receive(annaIn).getText());
+      login(carlIn, writer(carl), "carl");
+      assertEquals("carl joined the room", receive(annaIn).getText());
+      assertEquals("carl joined the room", receive(benIn).getText());
+
+      send(annaOut, Message.INPUT, null, "/msg ben  hi ben, only for you");
+
+      Message received = receive(benIn);
+      assertEquals(Message.PRIVATE, received.getType());
+      assertEquals("anna", received.getName());
+      assertEquals("hi ben, only for you", received.getText());
+      assertEquals("private message sent to ben", receive(annaIn).getText());
+      // If carl had received the private message, it would arrive before this chat line.
+      send(annaOut, Message.INPUT, null, "public again");
+      assertChat(receive(carlIn), "anna", "public again");
+    }
+  }
+
+  @Test
+  void privateMessageErrorsHelpTheSender() throws Exception {
+    try (Socket anna = connect()) {
+      BufferedReader annaIn = reader(anna);
+      PrintWriter annaOut = writer(anna);
+      login(annaIn, annaOut, "anna");
+
+      assertError(annaIn, annaOut, "/msg", "usage: /msg <name> <text>");
+      assertError(annaIn, annaOut, "/msg ben", "usage: /msg <name> <text>");
+      assertError(annaIn, annaOut, "/msg nobody hi", "no user named nobody is online");
+      assertError(annaIn, annaOut, "/msg anna hi", "you cannot send a private message to yourself");
+    }
+  }
+
+  @Test
+  void helpListsTheCommands() throws Exception {
+    try (Socket anna = connect()) {
+      BufferedReader annaIn = reader(anna);
+      PrintWriter annaOut = writer(anna);
+      login(annaIn, annaOut, "anna");
+
+      send(annaOut, Message.INPUT, null, "/help");
+
+      Message help = receive(annaIn);
+      assertEquals(Message.INFO, help.getType());
+      assertTrue(help.getText().contains("/msg <name> <text>"));
+      assertTrue(help.getText().contains("/bye"));
+    }
+  }
+
+  @Test
+  void brokenInputGivesErrorAndConnectionStaysOpen() throws Exception {
+    try (Socket anna = connect()) {
+      BufferedReader annaIn = reader(anna);
+      PrintWriter annaOut = writer(anna);
+      String invalid = "invalid message: expected type INPUT with a text";
+
+      // Before the login: broken JSON must not crash the handler either.
+      annaOut.println("{not json");
+      assertEquals(Message.LOGIN_ERROR, receive(annaIn).getType());
+      login(annaIn, annaOut, "anna");
+
+      annaOut.println("{not json");
+      assertEquals(invalid, receive(annaIn).getText());
+      annaOut.println("");
+      assertEquals(invalid, receive(annaIn).getText());
+      annaOut.println("{\"type\":\"INPUT\"}");
+      assertEquals(invalid, receive(annaIn).getText());
+      send(annaOut, Message.LOGIN, "anna", null);
+      assertEquals(invalid, receive(annaIn).getText());
+
+      send(annaOut, Message.INPUT, null, "still alive");
+      assertChat(receive(annaIn), "anna", "still alive");
     }
   }
 
@@ -184,6 +268,15 @@ class ChatIntegrationTest {
       assertEquals("ben left the room", left.getText());
       assertNull(benIn.readLine(), "server should close ben's connection");
     }
+  }
+
+  /** Sends one input line and checks that the answer is an error with the given text. */
+  private static void assertError(BufferedReader in, PrintWriter out, String input, String error)
+      throws IOException {
+    send(out, Message.INPUT, null, input);
+    Message answer = receive(in);
+    assertEquals(Message.ERROR, answer.getType(), input);
+    assertEquals(error, answer.getText(), input);
   }
 
   private static void assertChat(Message message, String name, String text) {

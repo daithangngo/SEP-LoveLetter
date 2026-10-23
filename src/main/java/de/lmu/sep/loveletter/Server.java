@@ -64,6 +64,22 @@ public class Server {
   }
 
   /**
+   * Sends a message to one logged-in client.
+   *
+   * @param name the name of the receiver
+   * @param message the message to send
+   * @return true if a client with this name is logged in and got the message
+   */
+  public boolean sendTo(String name, Message message) {
+    ClientHandler handler = clients.get(name);
+    if (handler == null) {
+      return false;
+    }
+    handler.send(message);
+    return true;
+  }
+
+  /**
    * Sends a message to all logged-in clients except one.
    *
    * @param message the message to send

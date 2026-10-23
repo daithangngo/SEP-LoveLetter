@@ -115,6 +115,9 @@ public class Client {
     if (Message.CHAT.equals(message.getType())) {
       return message.getName() + ": " + message.getText();
     }
+    if (Message.PRIVATE.equals(message.getType())) {
+      return "[private] " + message.getName() + ": " + message.getText();
+    }
     if (Message.ERROR.equals(message.getType())) {
       return "Error: " + message.getText();
     }
