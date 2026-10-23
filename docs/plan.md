@@ -104,7 +104,6 @@ method.
 
 | F-xx | Answer | Needed by |
 |------|--------|-----------|
-| F-11 indentation | **4 spaces**, no tabs → one reformat commit **before** F1.1 | P0.4 |
 | F-12, F-13 jar / Javadoc | One fat jar; Javadoc HTML in `docs/javadoc/` | F3.1, F3.3 |
 | F-14, F-15, F-18 turn order / start player | Join order, cyclic. First round: fewest days since last date → youngest → join order. Next round: the winner; several winners → fewest days, then as above. `/join <daysSinceLastDate> <age>` | F1.3, F1.4, F1.6 |
 | F-17, F-19 Guard | Name a **number** other than 1 (0 allowed). It hits **every** card with that value, the Doppelganger by its random value | F1.5 |
@@ -112,7 +111,7 @@ method.
 | F-09 Doppelganger | Protected players are not valid targets. Shown as e.g. `Doppelganger (5)` | F2.5 |
 | F-02 Mirror reaction | Only a player holding a Mirror is asked | F2.4 |
 
-**Sent to the tutor** (23.10). Default until answered:
+**Ask the tutor** (meeting 25.10). Default until answered:
 
 | F-xx | Needed by | Default until answered |
 |------|-----------|------------------------|
@@ -120,12 +119,13 @@ method.
 | F-05, F-06 Occultist | F2.3 | Exclusions apply to revival **and** sum elimination. The revived player plays one of their 2 cards without drawing. If the deck has fewer than 2 cards, draw what is left plus the set-aside card |
 | F-01 Doppelganger | F2.5 | Fewer days since the last date wins the comparison |
 | F-07 Black Mark owner already out | F2.1 | Still wins (like Phantom: the effect outlives the player) |
+| F-11 indentation (slide says 4, but links Google Style with 2) | P0.4 | Keep 2 spaces |
 
 - [x] Settle what the materials answer and log it in 07 (E-007 … E-011).
-- [ ] Send the 4 remaining questions to the tutor (Discord) **today**.
+- [ ] Ask the 5 remaining questions at the tutor meeting (25.10). None blocks Phase 1.
 
-### P0.4 Reformat to 4 spaces · `style/indentation`
-- [ ] Reformat all Java files to 4-space indentation in **one** commit (`style: switch to 4-space indentation`), with no other changes.
+### P0.4 Reformat to 4 spaces, only if the tutor asks for it · `style/indentation`
+- [ ] Reformat all Java files to 4-space indentation in **one** commit (`style: switch to 4-space indentation`), with no other changes. Do it before F1.4, where most new code lands.
 - [ ] `mvn clean package` still green.
 
 ---
@@ -276,7 +276,7 @@ Covers: 2.1a–d, 2.G1–G3, 1.19.
 - [ ] `uml/classes.puml` with the new classes → re-render `.png` / `.svg`.
 
 ### F3.3 Release check · ⬜
-- [ ] Check that all new code uses 4-space indentation (E-007, reformat done in P0.4).
+- [ ] Indentation is consistent everywhere, as settled by F-11 (P0.4 done if the tutor asked for 4).
 - [ ] Jar on other machines (E-007 / E-004): either build on the OS used for the Abnahme, or add the JavaFX
       platform jars for Windows, macOS and Linux to the fat jar. Ask before changing the pom.
 - [ ] Fresh clone → `mvn clean package` → server + 3 clients → play one full game.
