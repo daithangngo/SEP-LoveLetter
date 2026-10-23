@@ -134,17 +134,17 @@ method.
 
 Covers: 2.2a–d, 2.2h, 2.a.i–v, 2.b.i–iii, 1.8, part of 2.c.
 
-### F1.1 `Card` class and Doppelganger in the deck · `feature/card-class` · ⬜
+### F1.1 `Card` class and Doppelganger in the deck · `feature/card-class` · ✅
 Do this **before** writing rules, so no rule code ever depends on bare `CardType` values.
-- [ ] `Card` = `CardType` + `value` (fixed value from the type; the Doppelganger gets
-      `random.nextInt(9)` when the deck is created).
-- [ ] Add `DOPPELGANGER` to `CardType` → the deck has **32** cards.
-- [ ] `Deck(List<Card>)` constructor for tests (stacked deck: the exact draw order is known).
-- [ ] `Player.hand` / `discardPile`, `Round.setAsideCard` / `faceUpCards` use `Card`.
-- [ ] Until a custom card's phase is done, playing it = discard **without effect** (temporary,
-      marked with a short comment).
-- [ ] Tests: 32 cards, each count correct, Doppelganger value in 0..8 and fixed for a fixed seed.
-- [ ] Revise E-006 in 07 (timing changed).
+- [x] `Card` = `CardType` + `value` (a `record`; fixed value from the type; the Doppelganger gets
+      a value from 0 to 8 when the deck is created).
+- [x] Add `DOPPELGANGER` to `CardType` → the deck has **32** cards.
+- [x] `Deck(List<Card>)` constructor for tests (stacked deck: the exact draw order is known).
+- [x] `Player.hand` / `discardPile`, `Round.setAsideCard` / `faceUpCards` use `Card`.
+- [x] Tests: 32 cards, each count correct, Doppelganger value in 0..8 and fixed for a fixed seed
+      (`CardTest`, `DeckTest`).
+- [x] Revise E-006 in 07 (timing changed).
+- Moved to F1.5: "playing a custom card = discard without effect" (there is no play code yet).
 
 ### F1.2 Command handler + direct message · `feature/commands` · ⬜
 - [ ] Move command parsing out of `ClientHandler.chat()` into its own class (e.g. `CommandHandler`).
@@ -187,6 +187,8 @@ One commit + test class section per card; tests use a stacked deck.
 - [ ] Princess: discarding it for any reason → out.
 - [ ] Shared target rules: other player required, protected, eliminated, nobody valid → discard
       without effect.
+- [ ] Until a custom card's phase is done, playing it = discard **without effect** (temporary,
+      marked with a short comment; removed in F2.6).
 
 ### F1.6 Round end and game end · `feature/round-end` · ⬜
 - [ ] Deck empty at the end of a turn → reveal, highest value wins → tie: sum of discards → tie:
