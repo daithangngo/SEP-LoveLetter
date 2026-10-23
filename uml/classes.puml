@@ -19,11 +19,13 @@ package de.lmu.sep.loveletter {
     + start() : void
     + register(name : String, handler : ClientHandler) : boolean
     + remove(name : String) : void
+    + sendTo(name : String, message : Message) : boolean
     + broadcast(message : Message, except : ClientHandler) : void
   }
 
   class ClientHandler implements java.lang.Runnable {
     - {static} INVALID_NAME_TEXT : String
+    - {static} HELP_TEXT : String
     - socket : Socket
     - server : Server
     - in : BufferedReader
@@ -34,7 +36,11 @@ package de.lmu.sep.loveletter {
     + send(message : Message) : void {synchronized}
     - login() : boolean
     - chat() : void
+    - handleCommand(text : String) : void
+    - sendPrivate(parts : String[]) : void
+    - sendError(text : String) : void
     - disconnect() : void
+    - {static} parse(line : String) : Message
     - {static} isValidName(name : String) : boolean
   }
 
@@ -74,6 +80,7 @@ package de.lmu.sep.loveletter {
     + {static} LOGIN_ERROR : String = "LOGIN_ERROR"
     + {static} INFO : String = "INFO"
     + {static} CHAT : String = "CHAT"
+    + {static} PRIVATE : String = "PRIVATE"
     + {static} ERROR : String = "ERROR"
     - {static} GSON : Gson
     - type : String

@@ -48,8 +48,14 @@ java -jar target/loveletter-jar-with-dependencies.jar client
 java -jar target/loveletter-jar-with-dependencies.jar client localhost 4000
 ```
 
-The client asks for a name. After that, every line entered is sent to everyone.
-`bye` or `/bye` ends the connection.
+The client asks for a name. After that, every line entered is sent to everyone. Lines starting
+with `/` are commands:
+
+| Command              | Effect                                                     |
+|----------------------|------------------------------------------------------------|
+| `/msg <name> <text>` | private message: only `name` gets it, you get a confirmation |
+| `/help`              | lists all commands                                         |
+| `bye` or `/bye`      | ends the connection                                        |
 
 Chat window (JavaFX, default: `localhost`, port 1337):
 
@@ -135,9 +141,10 @@ fields that are not needed are omitted.
 | Client → Server | `INPUT`       | text       | one line entered                                |
 | Server → Client | `LOGIN_OK`    | –          | name accepted                                   |
 | Server → Client | `LOGIN_ERROR` | text       | name rejected, with reason                      |
-| Server → Client | `INFO`        | text       | `welcome name`, `name joined/left the room`     |
+| Server → Client | `INFO`        | text       | `welcome name`, `name joined/left the room`, `/help` list, confirmation of `/msg` |
 | Server → Client | `CHAT`        | name, text | chat line from `name`, to everyone incl. sender |
-| Server → Client | `ERROR`       | text       | unknown command, only to the sender             |
+| Server → Client | `PRIVATE`     | name, text | private message from `name`, only to the receiver |
+| Server → Client | `ERROR`       | text       | invalid input, unknown command or wrong arguments, only to the sender |
 
 Example:
 
@@ -150,6 +157,14 @@ Example:
 ```
 
 Flow: after `LOGIN_OK`, the new client gets `welcome name`, all others get `name joined the room`.
-Input without `/` goes to everyone as `CHAT`. `bye` and `/bye` end the connection; any other text
-starting with `/` results in `ERROR`. When a connection ends (via `bye` or by dropping), all others
-get `name left the room` and the name is free again.
+Input without `/` goes to everyone as `CHAT`. `bye` and `/bye` end the connection; other text
+starting with `/` is a command (see above), and an unknown one results in `ERROR`. A line that is
+not valid JSON, has no `text` or has another type than `INPUT` also results in `ERROR`; the
+connection stays open. When a connection ends (via `bye` or by dropping), all others get
+`name left the room` and the name is free again.
+
+```
+→ {"type":"INPUT","text":"/msg ben hi"}
+← {"type":"INFO","text":"private message sent to ben"}       (to anna)
+← {"type":"PRIVATE","name":"anna","text":"hi"}               (to ben only)
+```
